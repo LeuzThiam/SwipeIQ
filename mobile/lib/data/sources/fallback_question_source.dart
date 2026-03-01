@@ -8,15 +8,15 @@ class FallbackQuestionSource implements QuestionSource {
   final QuestionSource fallback;
 
   @override
-  Future<List<Question>> loadQuestions() async {
+  Future<List<Question>> loadQuestions({String? theme}) async {
     try {
-      final primaryQuestions = await primary.loadQuestions();
+      final primaryQuestions = await primary.loadQuestions(theme: theme);
       if (primaryQuestions.isNotEmpty) {
         return primaryQuestions;
       }
     } catch (_) {
       // Fallback silencieux: l'app continue avec la source locale.
     }
-    return fallback.loadQuestions();
+    return fallback.loadQuestions(theme: theme);
   }
 }

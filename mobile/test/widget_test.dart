@@ -12,6 +12,12 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
     );
+
+    expect(find.text('Choisir un theme'), findsOneWidget);
+
+    await tester.tap(find.text('💻 Tech'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Generer les questions'));
     await tester.pumpAndSettle();
 
     expect(find.text('SwipeIQ - Feed'), findsOneWidget);
@@ -33,6 +39,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
       );
+
+      await tester.tap(find.text('💻 Tech'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Generer les questions'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Advanced Program Input'));
@@ -51,7 +61,7 @@ void main() {
 
 class _FakeQuestionSource implements QuestionSource {
   @override
-  Future<List<Question>> loadQuestions() async {
+  Future<List<Question>> loadQuestions({String? theme}) async {
     return const [
       Question(
         id: 'q-test-1',
