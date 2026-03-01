@@ -27,6 +27,15 @@ class _FeedPageState extends State<FeedPage> {
     _ThemeOption(label: '🌱 Vie pratique', value: 'vie_pratique'),
     _ThemeOption(label: '🌎 Langues', value: 'langues'),
   ];
+  static const List<_ChoiceOption> _availableLevels = [
+    _ChoiceOption(label: 'Facile', value: 'facile'),
+    _ChoiceOption(label: 'Moyen', value: 'moyen'),
+    _ChoiceOption(label: 'Difficile', value: 'difficile'),
+  ];
+  static const List<_ChoiceOption> _availableLangs = [
+    _ChoiceOption(label: 'Francais', value: 'fr'),
+    _ChoiceOption(label: 'Anglais', value: 'en'),
+  ];
 
   late final PageController _pageController;
 
@@ -36,6 +45,8 @@ class _FeedPageState extends State<FeedPage> {
   bool _isThemeSelectionStep = true;
   String? _error;
   _ThemeOption? _selectedTheme;
+  _ChoiceOption _selectedLevel = _availableLevels[0];
+  _ChoiceOption _selectedLang = _availableLangs[0];
   int _currentPageIndex = 0;
   int _currentStreak = 0;
   int _bestStreak = 0;
@@ -77,7 +88,11 @@ class _FeedPageState extends State<FeedPage> {
 
     try {
       final source = widget.source ?? _resolveSource();
-      final questions = await source.loadQuestions(theme: selectedTheme.value);
+      final questions = await source.loadQuestions(
+        theme: selectedTheme.value,
+        level: _selectedLevel.value,
+        lang: _selectedLang.value,
+      );
       if (!mounted) return;
 
       if (questions.isEmpty) {
@@ -352,6 +367,50 @@ class _FeedPageState extends State<FeedPage> {
             }).toList(),
           ),
           const SizedBox(height: 16),
+          DropdownButtonFormField<_ChoiceOption>(
+            initialValue: _selectedLevel,
+            decoration: const InputDecoration(
+              labelText: 'Niveau',
+              border: OutlineInputBorder(),
+            ),
+            items: _availableLevels
+                .map(
+                  (level) => DropdownMenuItem<_ChoiceOption>(
+                    value: level,
+                    child: Text(level.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() {
+                _selectedLevel = value;
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<_ChoiceOption>(
+            initialValue: _selectedLang,
+            decoration: const InputDecoration(
+              labelText: 'Langue',
+              border: OutlineInputBorder(),
+            ),
+            items: _availableLangs
+                .map(
+                  (lang) => DropdownMenuItem<_ChoiceOption>(
+                    value: lang,
+                    child: Text(lang.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              if (value == null) return;
+              setState(() {
+                _selectedLang = value;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _isLoading ? null : _startQuiz,
             icon: const Icon(Icons.play_arrow),
@@ -369,6 +428,13 @@ class _FeedPageState extends State<FeedPage> {
 
 class _ThemeOption {
   const _ThemeOption({required this.label, required this.value});
+
+  final String label;
+  final String value;
+}
+
+class _ChoiceOption {
+  const _ChoiceOption({required this.label, required this.value});
 
   final String label;
   final String value;

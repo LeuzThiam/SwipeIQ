@@ -13,9 +13,13 @@ class RemoteQuestionSource implements QuestionSource {
   final http.Client _client;
 
   @override
-  Future<List<Question>> loadQuestions({String? theme}) async {
+  Future<List<Question>> loadQuestions({
+    String? theme,
+    String? level,
+    String? lang,
+  }) async {
     final uri = Uri.parse(endpoint);
-    final payload = _buildPayload(theme: theme);
+    final payload = _buildPayload(theme: theme, level: level, lang: lang);
     final response = await _client.post(
       uri,
       headers: const {'Content-Type': 'application/json'},
@@ -43,11 +47,21 @@ class RemoteQuestionSource implements QuestionSource {
     }).toList();
   }
 
-  Map<String, dynamic> _buildPayload({String? theme}) {
+  Map<String, dynamic> _buildPayload({
+    String? theme,
+    String? level,
+    String? lang,
+  }) {
+    final normalizedLevel = (level == null || level.trim().isEmpty)
+        ? 'facile'
+        : level.trim();
+    final normalizedLang = (lang == null || lang.trim().isEmpty)
+        ? 'fr'
+        : lang.trim();
     return {
       'theme': (theme == null || theme.trim().isEmpty) ? 'general' : theme.trim(),
-      'level': 'facile',
-      'lang': 'fr',
+      'level': normalizedLevel,
+      'lang': normalizedLang,
     };
   }
 

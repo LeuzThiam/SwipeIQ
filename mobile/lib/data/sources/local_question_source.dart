@@ -11,7 +11,11 @@ class LocalQuestionSource implements QuestionSource {
   final String assetPath;
 
   @override
-  Future<List<Question>> loadQuestions({String? theme}) async {
+  Future<List<Question>> loadQuestions({
+    String? theme,
+    String? level,
+    String? lang,
+  }) async {
     final raw = await rootBundle.loadString(assetPath);
     final jsonMap = jsonDecode(raw) as Map<String, dynamic>;
     var jsonQuestions = (jsonMap['questions'] as List<dynamic>)

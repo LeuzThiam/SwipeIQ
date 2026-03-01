@@ -61,7 +61,11 @@ void main() {
 
 class _FakeQuestionSource implements QuestionSource {
   @override
-  Future<List<Question>> loadQuestions({String? theme}) async {
+  Future<List<Question>> loadQuestions({
+    String? theme,
+    String? level,
+    String? lang,
+  }) async {
     return const [
       Question(
         id: 'q-test-1',
