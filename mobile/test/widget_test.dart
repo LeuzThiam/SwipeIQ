@@ -13,11 +13,11 @@ void main() {
       MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
     );
 
-    expect(find.text('Choisir un theme'), findsOneWidget);
+    expect(find.text('NEURON QUEST'), findsOneWidget);
 
-    await tester.tap(find.text('💻 Tech'));
+    await tester.tap(find.byKey(const Key('play_solo_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Generer les questions'));
+    await tester.tap(find.byKey(const Key('theme_card_tech')));
     await tester.pumpAndSettle();
 
     expect(find.text('SwipeIQ - Feed'), findsOneWidget);
@@ -40,9 +40,9 @@ void main() {
         MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
       );
 
-      await tester.tap(find.text('💻 Tech'));
+      await tester.tap(find.byKey(const Key('play_solo_button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Generer les questions'));
+      await tester.tap(find.byKey(const Key('theme_card_tech')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Advanced Program Input'));
