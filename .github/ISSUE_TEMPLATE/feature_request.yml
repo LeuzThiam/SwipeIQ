@@ -1,0 +1,26 @@
+name: Demande de fonctionnalite
+description: Proposer une amelioration
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Probleme cible
+      description: Quel probleme utilisateur veux-tu resoudre ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solution proposee
+      description: Decris ton idee.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Portee et impact
+      description: Quelles zones sont impactees ?

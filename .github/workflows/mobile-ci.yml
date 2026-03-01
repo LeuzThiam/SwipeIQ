@@ -1,10 +1,16 @@
-name: Mobile CI
+name: CI Mobile
 
 on:
   push:
     branches: [dev]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
   pull_request:
     branches: [main, dev]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-ci.yml"
 
 jobs:
   build:
@@ -22,5 +28,13 @@ jobs:
           channel: stable
 
       - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
+      - run: flutter build apk --debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: mobile/build/app/outputs/flutter-apk/app-debug.apk

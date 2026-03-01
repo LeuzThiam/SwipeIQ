@@ -1,10 +1,11 @@
 ## Description
-Explique ce que fait cette PR.
+Explique ce que cette PR change et pourquoi.
 
-## Screenshots
-(si UI)
+## Captures d'ecran
+(Si des changements UI sont inclus)
 
 ## Checklist
-- [ ] Tests ajoutes
-- [ ] Lint OK
-- [ ] Pas de warnings
+- [ ] Tests ajoutes ou mis a jour
+- [ ] Lint et checks passent
+- [ ] Aucun nouveau warning
+- [ ] Documentation mise a jour si necessaire
