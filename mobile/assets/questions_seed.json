@@ -1,0 +1,144 @@
+{
+  "questions": [
+    {
+      "id": "q001",
+      "theme": "informatique",
+      "level": "facile",
+      "question": "Que signifie API ?",
+      "choices": [
+        "Application Programming Interface",
+        "Advanced Program Input",
+        "Automated Protocol Integration",
+        "App Process Instance"
+      ],
+      "answer": 0,
+      "explanation": "API signifie Application Programming Interface."
+    },
+    {
+      "id": "q002",
+      "theme": "informatique",
+      "level": "facile",
+      "question": "Quel langage est utilise par Flutter ?",
+      "choices": [
+        "Kotlin",
+        "Swift",
+        "Dart",
+        "TypeScript"
+      ],
+      "answer": 2,
+      "explanation": "Flutter utilise le langage Dart."
+    },
+    {
+      "id": "q003",
+      "theme": "general",
+      "level": "facile",
+      "question": "Combien font 9 x 7 ?",
+      "choices": [
+        "56",
+        "63",
+        "72",
+        "49"
+      ],
+      "answer": 1,
+      "explanation": "9 x 7 = 63."
+    },
+    {
+      "id": "q004",
+      "theme": "informatique",
+      "level": "moyen",
+      "question": "Quel outil sert a versionner le code ?",
+      "choices": [
+        "Figma",
+        "Postman",
+        "Git",
+        "Docker"
+      ],
+      "answer": 2,
+      "explanation": "Git est un systeme de controle de version."
+    },
+    {
+      "id": "q005",
+      "theme": "reseau",
+      "level": "moyen",
+      "question": "Quel port est utilise par HTTPS ?",
+      "choices": [
+        "80",
+        "21",
+        "443",
+        "25"
+      ],
+      "answer": 2,
+      "explanation": "HTTPS utilise le port 443 par defaut."
+    },
+    {
+      "id": "q006",
+      "theme": "informatique",
+      "level": "facile",
+      "question": "Que fait Docker ?",
+      "choices": [
+        "Il compresse les images PNG",
+        "Il execute des applications en conteneurs",
+        "Il remplace Git",
+        "Il cree des maquettes UI"
+      ],
+      "answer": 1,
+      "explanation": "Docker permet d'executer des applications dans des conteneurs."
+    },
+    {
+      "id": "q007",
+      "theme": "bdd",
+      "level": "moyen",
+      "question": "Quelle requete SQL lit des donnees ?",
+      "choices": [
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "SELECT"
+      ],
+      "answer": 3,
+      "explanation": "SELECT sert a lire des donnees."
+    },
+    {
+      "id": "q008",
+      "theme": "informatique",
+      "level": "facile",
+      "question": "Que signifie CI dans CI/CD ?",
+      "choices": [
+        "Code Integration",
+        "Continuous Integration",
+        "Container Instance",
+        "Central Interface"
+      ],
+      "answer": 1,
+      "explanation": "CI signifie Continuous Integration."
+    },
+    {
+      "id": "q009",
+      "theme": "flutter",
+      "level": "moyen",
+      "question": "Quel widget permet une liste scrollable performante ?",
+      "choices": [
+        "Container",
+        "Column",
+        "ListView.builder",
+        "Stack"
+      ],
+      "answer": 2,
+      "explanation": "ListView.builder construit les items a la demande."
+    },
+    {
+      "id": "q010",
+      "theme": "algorithmique",
+      "level": "facile",
+      "question": "Quelle est la complexite d'une recherche binaire ?",
+      "choices": [
+        "O(n)",
+        "O(log n)",
+        "O(n log n)",
+        "O(1)"
+      ],
+      "answer": 1,
+      "explanation": "La recherche binaire est en O(log n)."
+    }
+  ]
+}

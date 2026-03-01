@@ -1,30 +1,49 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:mobile/main.dart';
+import 'package:mobile/data/sources/question_source.dart';
+import 'package:mobile/domain/models/question.dart';
+import 'package:mobile/ui/feed/feed_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Le feed affiche une question et met a jour le score', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
+    );
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('SwipeIQ - Feed'), findsOneWidget);
+    expect(find.text('Que signifie API ?'), findsOneWidget);
+    expect(find.text('Score: 0'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.tap(find.text('Application Programming Interface'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.textContaining('Bonne reponse'), findsOneWidget);
+    expect(find.text('Score: 1'), findsOneWidget);
   });
+}
+
+class _FakeQuestionSource implements QuestionSource {
+  @override
+  Future<List<Question>> loadQuestions() async {
+    return const [
+      Question(
+        id: 'q-test-1',
+        theme: 'informatique',
+        level: 'facile',
+        question: 'Que signifie API ?',
+        choices: [
+          'Application Programming Interface',
+          'Advanced Program Input',
+          'Automated Protocol Integration',
+          'App Process Instance',
+        ],
+        answer: 0,
+        explanation: 'API signifie Application Programming Interface.',
+      ),
+    ];
+  }
 }
