@@ -1,12 +1,12 @@
-# Security Policy
+# Politique de securite
 
-## Reporting a vulnerability
-Please report security issues privately by opening a confidential security advisory on GitHub.
+## Signaler une vulnerabilite
+Signale les problemes de securite en prive via une security advisory confidentielle sur GitHub.
 
-Include:
-- Affected component/file
-- Steps to reproduce
-- Impact assessment
-- Suggested mitigation (if known)
+Inclure:
+- Composant/fichier concerne
+- Etapes de reproduction
+- Evaluation de l'impact
+- Mitigation proposee (si connue)
 
-Do not open public issues for vulnerabilities.
+N'ouvre pas d'issue publique pour une vulnerabilite.

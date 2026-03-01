@@ -1,18 +1,18 @@
-# API Contract (Draft)
+# Contrat API (Brouillon)
 
 ## GET /health
-Response 200:
+Reponse 200:
 ```json
 { "status": "ok" }
 ```
 
 ## GET /questions
-Query params:
-- `theme` (optional)
-- `level` (optional)
-- `limit` (optional, default 20)
+Parametres query:
+- `theme` (optionnel)
+- `level` (optionnel)
+- `limit` (optionnel, 20 par defaut)
 
-Response 200:
+Reponse 200:
 ```json
 {
   "items": [
@@ -20,7 +20,7 @@ Response 200:
       "id": "seed-001",
       "theme": "general",
       "level": "easy",
-      "question": "What is SwipeIQ?",
+      "question": "Qu'est-ce que SwipeIQ ?",
       "choices": ["A", "B", "C", "D"],
       "answer": 0,
       "explanation": "..."

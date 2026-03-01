@@ -1,4 +1,4 @@
-name: Backend CI
+name: CI Backend
 
 on:
   push:
@@ -19,12 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Initialiser .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
 
-      - name: Detect projects
+      - name: Detecter les projets
         id: detect
         run: |
           if find backend/src -name "*.csproj" | grep -q .; then
@@ -33,17 +33,17 @@ jobs:
             echo "has_projects=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build
+      - name: Compiler
         if: steps.detect.outputs.has_projects == 'true'
         run: dotnet build backend/src --configuration Release
 
-      - name: Test
+      - name: Tester
         if: steps.detect.outputs.has_projects == 'true'
         run: dotnet test backend/tests --configuration Release
 
-      - name: No backend project yet
+      - name: Aucun projet backend pour l'instant
         if: steps.detect.outputs.has_projects == 'false'
-        run: echo "Backend scaffold only - skipping dotnet build/test."
+        run: echo "Scaffold backend uniquement - build/test dotnet ignores."
 
-      - name: Docker build
+      - name: Build Docker
         run: docker build -f backend/Dockerfile -t swipeiq-backend:ci .

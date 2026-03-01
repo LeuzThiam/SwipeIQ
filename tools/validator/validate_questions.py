@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate SwipeIQ question JSON files in content/generated."""
+"""Valide les fichiers JSON de questions SwipeIQ dans content/generated."""
 
 from __future__ import annotations
 
@@ -12,19 +12,19 @@ REQUIRED_KEYS = {"id", "theme", "level", "question", "choices", "answer", "expla
 def validate_question(item: object, file_label: str, index: int) -> list[str]:
     errors: list[str] = []
     if not isinstance(item, dict):
-        return [f"{file_label}: question[{index}] must be an object"]
+        return [f"{file_label}: question[{index}] doit etre un objet"]
 
     missing = REQUIRED_KEYS - set(item.keys())
     if missing:
-        errors.append(f"{file_label}: question[{index}] missing keys: {sorted(missing)}")
+        errors.append(f"{file_label}: question[{index}] champs manquants: {sorted(missing)}")
 
     choices = item.get("choices")
     if not isinstance(choices, list) or len(choices) != 4 or not all(isinstance(c, str) for c in choices):
-        errors.append(f"{file_label}: question[{index}] choices must be an array of 4 strings")
+        errors.append(f"{file_label}: question[{index}] choices doit etre un tableau de 4 strings")
 
     answer = item.get("answer")
     if not isinstance(answer, int) or answer < 0 or answer > 3:
-        errors.append(f"{file_label}: question[{index}] answer must be an int in [0..3]")
+        errors.append(f"{file_label}: question[{index}] answer doit etre un entier dans [0..3]")
 
     return errors
 
@@ -34,14 +34,14 @@ def validate_file(path: Path, root: Path) -> list[str]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:  # noqa: BLE001
-        return [f"{label}: invalid JSON ({exc})"]
+        return [f"{label}: JSON invalide ({exc})"]
 
     if not isinstance(data, dict):
-        return [f"{label}: root must be an object"]
+        return [f"{label}: la racine doit etre un objet"]
 
     questions = data.get("questions")
     if not isinstance(questions, list):
-        return [f"{label}: `questions` must be an array"]
+        return [f"{label}: `questions` doit etre un tableau"]
 
     errors: list[str] = []
     for idx, question in enumerate(questions):
@@ -54,12 +54,12 @@ def main() -> int:
     generated = root / "content" / "generated"
 
     if not generated.exists():
-        print("[OK] content/generated does not exist yet; nothing to validate.")
+        print("[OK] content/generated n'existe pas encore; rien a valider.")
         return 0
 
     files = sorted(generated.rglob("*.json"))
     if not files:
-        print("[OK] No JSON files found in content/generated.")
+        print("[OK] Aucun fichier JSON trouve dans content/generated.")
         return 0
 
     all_errors: list[str] = []
@@ -67,12 +67,12 @@ def main() -> int:
         all_errors.extend(validate_file(file_path, root))
 
     if all_errors:
-        print("[ERROR] Content validation failed:")
+        print("[ERROR] La validation du contenu a echoue:")
         for err in all_errors:
             print(f"- {err}")
         return 1
 
-    print(f"[OK] Validated {len(files)} JSON file(s).")
+    print(f"[OK] {len(files)} fichier(s) JSON valides.")
     return 0
 
 

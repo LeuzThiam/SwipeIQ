@@ -1,12 +1,12 @@
-# Code of Conduct
+# Code de conduite
 
-## Our Pledge
-We are committed to a respectful, harassment-free environment for everyone.
+## Notre engagement
+Nous nous engageons a maintenir un environnement respectueux et sans harcelement pour tout le monde.
 
-## Our Standards
-- Be respectful and constructive.
-- Accept feedback gracefully.
-- Focus on what is best for the project.
+## Nos standards
+- Rester respectueux et constructif.
+- Accueillir les retours avec ouverture.
+- Prioriser l'interet du projet.
 
-## Enforcement
-Instances of unacceptable behavior may be reported to the maintainers through GitHub private channels.
+## Application
+Les comportements inacceptables peuvent etre signales aux mainteneurs via des canaux prives GitHub.

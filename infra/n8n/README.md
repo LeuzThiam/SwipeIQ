@@ -1,1 +1,1 @@
-This directory stores local n8n state when running via docker-compose.
+Ce dossier stocke l'etat local de n8n lors d'une execution via docker-compose.

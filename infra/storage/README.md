@@ -1,1 +1,1 @@
-This directory stores local volumes (json outputs, database files).
+Ce dossier stocke les volumes locaux (sorties JSON, fichiers base de donnees).

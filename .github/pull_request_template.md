@@ -1,11 +1,11 @@
 ## Description
-Explain what this PR changes and why.
+Explique ce que cette PR change et pourquoi.
 
-## Screenshots
-(If UI changes are included)
+## Captures d'ecran
+(Si des changements UI sont inclus)
 
 ## Checklist
-- [ ] Tests added or updated
-- [ ] Lint and checks pass
-- [ ] No new warnings
-- [ ] Docs updated if needed
+- [ ] Tests ajoutes ou mis a jour
+- [ ] Lint et checks passent
+- [ ] Aucun nouveau warning
+- [ ] Documentation mise a jour si necessaire

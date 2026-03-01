@@ -1,10 +1,10 @@
 # Backend
 
-Future API service for SwipeIQ.
+Service API futur pour SwipeIQ.
 
-Planned endpoints:
+Endpoints prevus:
 - `GET /health`
 - `GET /questions`
 - `GET /stats`
 
-Current status: scaffold only.
+Statut actuel: scaffold uniquement.

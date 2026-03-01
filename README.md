@@ -4,17 +4,17 @@
 [![Content CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml)
 [![Backend CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml)
 
-SwipeIQ is a Flutter-first learning app powered by swipeable micro-content with validated JSON pipelines.
+SwipeIQ est une application d'apprentissage Flutter basee sur du micro-contenu "swipe" avec des pipelines JSON valides.
 
 ## Demo
-- TODO: add a short GIF/video.
+- TODO: ajouter un GIF ou une courte video.
 
-## MVP Features
-- [x] Flutter bootstrap
-- [ ] Vertical feed reels
-- [x] JSON content validation gate
-- [ ] Stats and streaks UI
-- [ ] Remote content delivery
+## Fonctionnalites MVP
+- [x] Initialisation Flutter
+- [ ] Feed vertical type reels
+- [x] Validation JSON en gate CI
+- [ ] Ecran stats et streaks
+- [ ] Livraison de contenu distant
 
 ## Architecture
 ```text
@@ -27,7 +27,7 @@ SwipeIQ/
 |- docs/
 ```
 
-## Getting Started
+## Demarrage rapide
 ### Mobile
 ```bash
 cd mobile
@@ -37,7 +37,7 @@ flutter test
 flutter run
 ```
 
-### Content
+### Contenu
 ```bash
 python tools/validator/validate_questions.py
 ```
@@ -49,20 +49,20 @@ docker compose up --build
 ```
 
 ## CI/CD
-- `mobile-ci`: format, analyze, test, debug APK artifact.
-- `content-ci`: validates JSON from `content/generated`.
-- `backend-ci`: prepares backend pipeline and docker build.
+- `mobile-ci`: format, analyse, tests, artefact APK debug.
+- `content-ci`: valide les JSON de `content/generated`.
+- `backend-ci`: prepare le pipeline backend et le build Docker.
 
-## Roadmap
+## Feuille de route
 ### V1
-- Feed + content consumption
-- Local stats
-- Reliable content publication flow
+- Feed + consommation de contenu
+- Statistiques locales
+- Flux de publication contenu fiable
 
 ### V2
-- Full backend APIs
-- Auth and profile
-- Recommendations and leaderboard
+- API backend completes
+- Authentification et profil
+- Recommandations et classement
 
-## License
-MIT. See [LICENSE](./LICENSE).
+## Licence
+MIT. Voir [LICENSE](./LICENSE).
