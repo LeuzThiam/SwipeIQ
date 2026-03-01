@@ -26,6 +26,27 @@ void main() {
     expect(find.text('Score 1'), findsOneWidget);
     expect(find.text('Streak 1'), findsOneWidget);
   });
+
+  testWidgets(
+    'Une mauvaise reponse affiche la bonne reponse et reset la streak',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Advanced Program Input'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Mauvaise reponse'), findsOneWidget);
+      expect(
+        find.textContaining('Bonne reponse: Application Programming Interface'),
+        findsOneWidget,
+      );
+      expect(find.text('Score 0'), findsOneWidget);
+      expect(find.text('Streak 0'), findsOneWidget);
+    },
+  );
 }
 
 class _FakeQuestionSource implements QuestionSource {

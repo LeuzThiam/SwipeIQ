@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../data/sources/fallback_question_source.dart';
@@ -110,6 +111,8 @@ class _FeedPageState extends State<FeedPage> {
       _currentStreak = nextStreak;
       _bestStreak = nextBestStreak;
     });
+
+    _triggerHapticFeedback(isCorrect);
   }
 
   String _feedbackForQuestion(int index) {
@@ -119,7 +122,20 @@ class _FeedPageState extends State<FeedPage> {
     if (selected == question.answer) {
       return 'Bonne reponse. ${question.explanation}';
     }
-    return 'Mauvaise reponse. ${question.explanation}';
+    final goodChoice = question.choices[question.answer];
+    return 'Mauvaise reponse. Bonne reponse: $goodChoice. ${question.explanation}';
+  }
+
+  Future<void> _triggerHapticFeedback(bool isCorrect) async {
+    try {
+      if (isCorrect) {
+        await HapticFeedback.lightImpact();
+      } else {
+        await HapticFeedback.mediumImpact();
+      }
+    } catch (_) {
+      // Ignore haptic errors on unsupported platforms.
+    }
   }
 
   Future<void> _goToNextQuestion(int currentIndex) async {
@@ -193,7 +209,21 @@ class _FeedPageState extends State<FeedPage> {
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Center(child: Text('Streak $_currentStreak')),
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    scale: Tween<double>(begin: 0.9, end: 1).animate(animation),
+                    child: child,
+                  );
+                },
+                child: Text(
+                  'Streak $_currentStreak',
+                  key: ValueKey<int>(_currentStreak),
+                ),
+              ),
+            ),
           ),
         ],
         bottom: PreferredSize(
