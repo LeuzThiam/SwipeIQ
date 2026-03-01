@@ -16,13 +16,15 @@ void main() {
 
     expect(find.text('SwipeIQ - Feed'), findsOneWidget);
     expect(find.text('Que signifie API ?'), findsOneWidget);
-    expect(find.text('Score: 0'), findsOneWidget);
+    expect(find.text('Score 0'), findsOneWidget);
+    expect(find.text('Streak 0'), findsOneWidget);
 
     await tester.tap(find.text('Application Programming Interface'));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Bonne reponse'), findsOneWidget);
-    expect(find.text('Score: 1'), findsOneWidget);
+    expect(find.text('Score 1'), findsOneWidget);
+    expect(find.text('Streak 1'), findsOneWidget);
   });
 }
 
