@@ -1,0 +1,13 @@
+{
+  "questions": [
+    {
+      "id": "seed-001",
+      "theme": "general",
+      "level": "easy",
+      "question": "What is SwipeIQ?",
+      "choices": ["A mobile learning app", "A database", "A game console", "A browser"],
+      "answer": 0,
+      "explanation": "SwipeIQ is the mobile app in this monorepo."
+    }
+  ]
+}

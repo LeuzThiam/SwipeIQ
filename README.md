@@ -2,27 +2,29 @@
 
 [![Mobile CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/mobile-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/mobile-ci.yml)
 [![Content CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml)
+[![Backend CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml)
 
-SwipeIQ is a short-video inspired mobile app to learn from swipeable micro-content.
+SwipeIQ is a Flutter-first learning app powered by swipeable micro-content with validated JSON pipelines.
 
 ## Demo
-- TODO: add GIF or short demo video.
+- TODO: add a short GIF/video.
 
 ## MVP Features
-- [x] Flutter app bootstrap in `mobile/`
-- [ ] Vertical swipe feed
-- [ ] JSON-driven content rendering
-- [ ] Favorites and progress tracking
-- [ ] Local analytics dashboard
+- [x] Flutter bootstrap
+- [ ] Vertical feed reels
+- [x] JSON content validation gate
+- [ ] Stats and streaks UI
+- [ ] Remote content delivery
 
 ## Architecture
 ```text
-SwipeIQ (monorepo)
-|- mobile/   # Flutter app
-|- content/  # JSON content packs
-|- tools/    # validators and scripts
-|- infra/    # deployment and automation assets
-|- docs/     # product and technical docs
+SwipeIQ/
+|- mobile/
+|- backend/
+|- content/
+|- tools/
+|- infra/
+|- docs/
 ```
 
 ## Getting Started
@@ -35,25 +37,32 @@ flutter test
 flutter run
 ```
 
-### Content Validation
+### Content
 ```bash
-python tools/validate_content.py
+python tools/validator/validate_questions.py
+```
+
+### Infra (local)
+```bash
+cd infra
+docker compose up --build
 ```
 
 ## CI/CD
-- `mobile-ci`: format check, analyze, test, Android APK artifact.
-- `content-ci`: validates JSON files in `content/` on push/PR.
+- `mobile-ci`: format, analyze, test, debug APK artifact.
+- `content-ci`: validates JSON from `content/generated`.
+- `backend-ci`: prepares backend pipeline and docker build.
 
 ## Roadmap
 ### V1
-- Core feed and content playback
-- JSON schema stabilization
-- First production-ready content pack
+- Feed + content consumption
+- Local stats
+- Reliable content publication flow
 
 ### V2
-- User profiles and sync
-- Recommendations
-- Experimentation and A/B support
+- Full backend APIs
+- Auth and profile
+- Recommendations and leaderboard
 
 ## License
 MIT. See [LICENSE](./LICENSE).

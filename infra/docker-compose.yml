@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "5678:5678"
+    env_file:
+      - ./env/.env.example
+    volumes:
+      - ./n8n:/home/node/.n8n
+      - ./storage:/data
+
+  validator:
+    build:
+      context: ..
+      dockerfile: tools/validator/Dockerfile
+    volumes:
+      - ../content:/workspace/content
+      - ../tools:/workspace/tools
+
+  postgres:
+    image: postgres:16
+    profiles: ["backend"]
+    environment:
+      POSTGRES_USER: swipeiq
+      POSTGRES_PASSWORD: swipeiq
+      POSTGRES_DB: swipeiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storage/postgres:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    profiles: ["backend"]
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
