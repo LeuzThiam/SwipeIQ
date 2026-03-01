@@ -1,10 +1,11 @@
 ## Description
-Explique ce que fait cette PR.
+Explain what this PR changes and why.
 
 ## Screenshots
-(si UI)
+(If UI changes are included)
 
 ## Checklist
-- [ ] Tests ajoutes
-- [ ] Lint OK
-- [ ] Pas de warnings
+- [ ] Tests added or updated
+- [ ] Lint and checks pass
+- [ ] No new warnings
+- [ ] Docs updated if needed
