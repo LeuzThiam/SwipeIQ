@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,6 +22,7 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> {
+  static const int _secondsPerQuestion = 45;
   static const List<_ThemeOption> _availableThemes = [
     _ThemeOption(label: 'Culture G', value: 'culture_g'),
     _ThemeOption(label: 'Sciences', value: 'sciences'),
@@ -43,6 +46,7 @@ class _FeedPageState extends State<FeedPage> {
   ];
 
   late final PageController _pageController;
+  Timer? _questionTimer;
 
   List<Question> _questions = const [];
   List<int?> _selectedChoices = const [];
@@ -55,6 +59,7 @@ class _FeedPageState extends State<FeedPage> {
   _ChoiceOption? _selectedLevel;
   _ChoiceOption _selectedLang = _availableLangs[0];
   int _currentPageIndex = 0;
+  int _remainingSeconds = _secondsPerQuestion;
   int _currentStreak = 0;
   int _bestStreak = 0;
 
@@ -83,6 +88,7 @@ class _FeedPageState extends State<FeedPage> {
       _questions = const [];
       _selectedChoices = const [];
       _currentPageIndex = 0;
+      _remainingSeconds = _secondsPerQuestion;
       _currentStreak = 0;
       _bestStreak = 0;
     });
@@ -110,7 +116,9 @@ class _FeedPageState extends State<FeedPage> {
         _questions = questions;
         _selectedChoices = List<int?>.filled(questions.length, null);
         _isLoading = false;
+        _remainingSeconds = _secondsPerQuestion;
       });
+      _startQuestionTimer();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -125,6 +133,7 @@ class _FeedPageState extends State<FeedPage> {
 
   @override
   void dispose() {
+    _stopQuestionTimer();
     _pageController.dispose();
     super.dispose();
   }
@@ -163,6 +172,7 @@ class _FeedPageState extends State<FeedPage> {
       _currentStreak = nextStreak;
       _bestStreak = nextBestStreak;
     });
+    _stopQuestionTimer();
 
     _triggerHapticFeedback(isCorrect);
   }
@@ -191,6 +201,7 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _goToNextQuestion(int currentIndex) async {
+    _stopQuestionTimer();
     if (currentIndex == _questions.length - 1) {
       setState(() {
         _isResultStep = true;
@@ -202,9 +213,12 @@ class _FeedPageState extends State<FeedPage> {
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
+    _resetQuestionTimer();
+    _startQuestionTimer();
   }
 
   void _restartGame() {
+    _stopQuestionTimer();
     setState(() {
       _isThemeSelectionStep = true;
       _isSoloThemeStep = false;
@@ -212,6 +226,7 @@ class _FeedPageState extends State<FeedPage> {
       _questions = const [];
       _selectedChoices = const [];
       _currentPageIndex = 0;
+      _remainingSeconds = _secondsPerQuestion;
       _currentStreak = 0;
       _bestStreak = 0;
       _error = null;
@@ -224,6 +239,7 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _openSoloThemeSelection() {
+    _stopQuestionTimer();
     setState(() {
       _isSoloThemeStep = true;
       _error = null;
@@ -231,8 +247,48 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _backToHomeHub() {
+    _stopQuestionTimer();
     setState(() {
       _isSoloThemeStep = false;
+    });
+  }
+
+  void _resetQuestionTimer() {
+    if (!mounted) return;
+    setState(() {
+      _remainingSeconds = _secondsPerQuestion;
+    });
+  }
+
+  void _stopQuestionTimer() {
+    _questionTimer?.cancel();
+    _questionTimer = null;
+  }
+
+  void _startQuestionTimer() {
+    _stopQuestionTimer();
+    if (!mounted || _isThemeSelectionStep || _isResultStep || _isLoading) return;
+    if (_questions.isEmpty) return;
+    if (_isQuestionLocked(_currentPageIndex)) return;
+
+    _questionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _isThemeSelectionStep || _isResultStep || _isLoading) {
+        _stopQuestionTimer();
+        return;
+      }
+      if (_isQuestionLocked(_currentPageIndex)) {
+        _stopQuestionTimer();
+        return;
+      }
+      if (_remainingSeconds <= 1) {
+        _stopQuestionTimer();
+        _remainingSeconds = 0;
+        _goToNextQuestion(_currentPageIndex);
+        return;
+      }
+      setState(() {
+        _remainingSeconds -= 1;
+      });
     });
   }
 
@@ -427,6 +483,8 @@ class _FeedPageState extends State<FeedPage> {
         setState(() {
           _currentPageIndex = index;
         });
+        _resetQuestionTimer();
+        _startQuestionTimer();
       },
       itemCount: _questions.length,
       itemBuilder: (context, index) {
@@ -443,6 +501,7 @@ class _FeedPageState extends State<FeedPage> {
           isLastQuestion: index == _questions.length - 1,
           score: _score,
           progressValue: _progressValue,
+          remainingSeconds: _remainingSeconds,
         );
       },
     );

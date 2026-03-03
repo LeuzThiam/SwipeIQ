@@ -16,6 +16,7 @@ class QuestionCard extends StatelessWidget {
     required this.isLastQuestion,
     required this.score,
     required this.progressValue,
+    required this.remainingSeconds,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class QuestionCard extends StatelessWidget {
   final bool isLastQuestion;
   final int score;
   final double progressValue;
+  final int remainingSeconds;
 
   bool _isCorrectOption(int index) => index == question.answer;
   bool _isWrongSelectedOption(int index) =>
@@ -115,7 +117,7 @@ class QuestionCard extends StatelessWidget {
                               color: Colors.white12,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Row(
+                            child: Row(
                               children: [
                                 Icon(
                                   Icons.schedule_rounded,
@@ -124,7 +126,7 @@ class QuestionCard extends StatelessWidget {
                                 ),
                                 SizedBox(width: 6),
                                 Text(
-                                  '0:45',
+                                  _formatTime(remainingSeconds),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w700,
@@ -283,6 +285,14 @@ class QuestionCard extends StatelessWidget {
       default:
         return const Color(0xFFF44336);
     }
+  }
+
+  String _formatTime(int totalSeconds) {
+    final safeSeconds = totalSeconds < 0 ? 0 : totalSeconds;
+    final minutes = safeSeconds ~/ 60;
+    final seconds = safeSeconds % 60;
+    final sec = seconds < 10 ? '0$seconds' : '$seconds';
+    return '$minutes:$sec';
   }
 }
 
