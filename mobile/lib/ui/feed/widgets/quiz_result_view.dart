@@ -10,6 +10,8 @@ class QuizResultView extends StatelessWidget {
     required this.onNextRound,
     required this.onChangeTheme,
     required this.onBack,
+    this.nextRoundLabel = 'NEXT ROUND',
+    this.secondaryLabel = 'THEME SELECTION',
     super.key,
   });
 
@@ -21,6 +23,8 @@ class QuizResultView extends StatelessWidget {
   final VoidCallback onNextRound;
   final VoidCallback onChangeTheme;
   final VoidCallback onBack;
+  final String nextRoundLabel;
+  final String secondaryLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -180,8 +184,8 @@ class QuizResultView extends StatelessWidget {
                                 ),
                               ),
                               icon: const Icon(Icons.arrow_forward_rounded),
-                              label: const Text(
-                                'NEXT ROUND',
+                              label: Text(
+                                nextRoundLabel,
                                 style: TextStyle(fontWeight: FontWeight.w800),
                               ),
                             ),
@@ -198,8 +202,8 @@ class QuizResultView extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              child: const Text(
-                                'THEME SELECTION',
+                              child: Text(
+                                secondaryLabel,
                                 style: TextStyle(fontWeight: FontWeight.w800),
                               ),
                             ),

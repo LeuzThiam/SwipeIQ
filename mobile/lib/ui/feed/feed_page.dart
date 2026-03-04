@@ -53,15 +53,62 @@ class _FeedPageState extends State<FeedPage> {
   bool _isLoading = false;
   bool _isThemeSelectionStep = true;
   bool _isSoloThemeStep = false;
+  bool _isAdventureMapStep = false;
   bool _isResultStep = false;
+  bool _isAdventureMode = false;
   String? _error;
   _ThemeOption _selectedTheme = _availableThemes.first;
   _ChoiceOption? _selectedLevel;
   _ChoiceOption _selectedLang = _availableLangs[0];
+  int? _questionLimit;
   int _currentPageIndex = 0;
   int _remainingSeconds = _secondsPerQuestion;
   int _currentStreak = 0;
   int _bestStreak = 0;
+  int? _currentAdventureLevelIndex;
+  int? _nextAdventureLevelIndex;
+  final List<_AdventureLevelState> _adventureLevels = [
+    _AdventureLevelState(
+      id: 1,
+      title: 'Niveau 1',
+      themeValue: 'culture_g',
+      difficultyValue: 'facile',
+      questionCount: 3,
+      unlocked: true,
+    ),
+    _AdventureLevelState(
+      id: 2,
+      title: 'Niveau 2',
+      themeValue: 'sciences',
+      difficultyValue: 'facile',
+      questionCount: 3,
+      unlocked: false,
+    ),
+    _AdventureLevelState(
+      id: 3,
+      title: 'Niveau 3',
+      themeValue: 'tech',
+      difficultyValue: 'moyen',
+      questionCount: 4,
+      unlocked: false,
+    ),
+    _AdventureLevelState(
+      id: 4,
+      title: 'Niveau 4',
+      themeValue: 'business',
+      difficultyValue: 'moyen',
+      questionCount: 4,
+      unlocked: false,
+    ),
+    _AdventureLevelState(
+      id: 5,
+      title: 'Niveau 5',
+      themeValue: 'sport',
+      difficultyValue: 'difficile',
+      questionCount: 5,
+      unlocked: false,
+    ),
+  ];
 
   @override
   void initState() {
@@ -83,6 +130,7 @@ class _FeedPageState extends State<FeedPage> {
       _isLoading = true;
       _isThemeSelectionStep = false;
       _isSoloThemeStep = false;
+      _isAdventureMapStep = false;
       _isResultStep = false;
       _error = null;
       _questions = const [];
@@ -112,9 +160,24 @@ class _FeedPageState extends State<FeedPage> {
         return;
       }
 
+      final limitedQuestions =
+          (_questionLimit != null && questions.length > _questionLimit!)
+          ? questions.take(_questionLimit!).toList()
+          : questions;
+
+      if (limitedQuestions.isEmpty) {
+        setState(() {
+          _error =
+              'Aucune question disponible pour ce niveau. Verifie la reponse n8n.';
+          _isLoading = false;
+          _isThemeSelectionStep = true;
+        });
+        return;
+      }
+
       setState(() {
-        _questions = questions;
-        _selectedChoices = List<int?>.filled(questions.length, null);
+        _questions = limitedQuestions;
+        _selectedChoices = List<int?>.filled(limitedQuestions.length, null);
         _isLoading = false;
         _remainingSeconds = _secondsPerQuestion;
       });
@@ -203,6 +266,7 @@ class _FeedPageState extends State<FeedPage> {
   Future<void> _goToNextQuestion(int currentIndex) async {
     _stopQuestionTimer();
     if (currentIndex == _questions.length - 1) {
+      _applyAdventureProgressIfNeeded();
       setState(() {
         _isResultStep = true;
       });
@@ -222,9 +286,14 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _isThemeSelectionStep = true;
       _isSoloThemeStep = false;
+      _isAdventureMapStep = false;
       _isResultStep = false;
+      _isAdventureMode = false;
       _questions = const [];
       _selectedChoices = const [];
+      _questionLimit = null;
+      _currentAdventureLevelIndex = null;
+      _nextAdventureLevelIndex = null;
       _currentPageIndex = 0;
       _remainingSeconds = _secondsPerQuestion;
       _currentStreak = 0;
@@ -242,6 +311,11 @@ class _FeedPageState extends State<FeedPage> {
     _stopQuestionTimer();
     setState(() {
       _isSoloThemeStep = true;
+      _isAdventureMapStep = false;
+      _isAdventureMode = false;
+      _questionLimit = null;
+      _currentAdventureLevelIndex = null;
+      _nextAdventureLevelIndex = null;
       _error = null;
     });
   }
@@ -250,7 +324,87 @@ class _FeedPageState extends State<FeedPage> {
     _stopQuestionTimer();
     setState(() {
       _isSoloThemeStep = false;
+      _isAdventureMapStep = false;
     });
+  }
+
+  void _openAdventureMap() {
+    _stopQuestionTimer();
+    setState(() {
+      _isAdventureMapStep = true;
+      _isSoloThemeStep = false;
+      _isAdventureMode = true;
+      _questionLimit = null;
+      _currentAdventureLevelIndex = null;
+      _nextAdventureLevelIndex = null;
+      _error = null;
+    });
+  }
+
+  void _startAdventureLevel(int levelIndex) {
+    final level = _adventureLevels[levelIndex];
+    if (!level.unlocked) return;
+
+    setState(() {
+      _isAdventureMode = true;
+      _currentAdventureLevelIndex = levelIndex;
+      _nextAdventureLevelIndex = null;
+      _questionLimit = level.questionCount;
+      _selectedTheme = _themeByValue(level.themeValue);
+      _selectedLevel = _levelByValue(level.difficultyValue);
+    });
+    _startQuiz();
+  }
+
+  void _goToAdventureMapFromResult() {
+    _stopQuestionTimer();
+    setState(() {
+      _isThemeSelectionStep = true;
+      _isAdventureMapStep = true;
+      _isSoloThemeStep = false;
+      _isResultStep = false;
+      _isLoading = false;
+      _questions = const [];
+      _selectedChoices = const [];
+      _currentPageIndex = 0;
+      _remainingSeconds = _secondsPerQuestion;
+      _error = null;
+    });
+  }
+
+  void _nextAdventureRoundOrReplay() {
+    if (_nextAdventureLevelIndex != null) {
+      _startAdventureLevel(_nextAdventureLevelIndex!);
+      return;
+    }
+    _retryCurrentConfig();
+  }
+
+  void _applyAdventureProgressIfNeeded() {
+    if (!_isAdventureMode || _currentAdventureLevelIndex == null) return;
+    final idx = _currentAdventureLevelIndex!;
+    final level = _adventureLevels[idx];
+    final successRate = _questions.isEmpty ? 0 : (_score * 100 / _questions.length);
+    final stars = successRate >= 90
+        ? 3
+        : successRate >= 75
+        ? 2
+        : successRate >= 60
+        ? 1
+        : 0;
+
+    if (stars > level.stars) {
+      level.stars = stars;
+    }
+    if (_score > level.bestScore) {
+      level.bestScore = _score;
+    }
+    if (stars > 0 && idx + 1 < _adventureLevels.length) {
+      _adventureLevels[idx + 1].unlocked = true;
+      _nextAdventureLevelIndex = idx + 1;
+    } else {
+      _nextAdventureLevelIndex = null;
+    }
   }
 
   void _resetQuestionTimer() {
@@ -394,7 +548,9 @@ class _FeedPageState extends State<FeedPage> {
   Widget build(BuildContext context) {
     if (_isThemeSelectionStep) {
       return Scaffold(
-        body: _isSoloThemeStep ? _buildSoloThemeSelection() : _buildThemeSelector(),
+        body: _isSoloThemeStep
+            ? _buildSoloThemeSelection()
+            : (_isAdventureMapStep ? _buildAdventureMap() : _buildThemeSelector()),
       );
     }
 
@@ -444,7 +600,9 @@ class _FeedPageState extends State<FeedPage> {
 
   Widget _buildBody() {
     if (_isThemeSelectionStep) {
-      return _isSoloThemeStep ? _buildSoloThemeSelection() : _buildThemeSelector();
+      return _isSoloThemeStep
+          ? _buildSoloThemeSelection()
+          : (_isAdventureMapStep ? _buildAdventureMap() : _buildThemeSelector());
     }
 
     if (_isLoading) {
@@ -466,9 +624,15 @@ class _FeedPageState extends State<FeedPage> {
         total: _questions.length,
         bestStreak: _bestStreak,
         answeredCount: _answeredCount,
-        onNextRound: _retryCurrentConfig,
-        onChangeTheme: _restartGame,
-        onBack: _restartGame,
+        onNextRound: _isAdventureMode ? _nextAdventureRoundOrReplay : _retryCurrentConfig,
+        onChangeTheme: _isAdventureMode
+            ? _goToAdventureMapFromResult
+            : _restartGame,
+        onBack: _isAdventureMode ? _goToAdventureMapFromResult : _restartGame,
+        nextRoundLabel: _isAdventureMode && _nextAdventureLevelIndex == null
+            ? 'REPLAY LEVEL'
+            : 'NEXT ROUND',
+        secondaryLabel: _isAdventureMode ? 'ADVENTURE MAP' : 'THEME SELECTION',
       );
     }
 
@@ -557,10 +721,10 @@ class _FeedPageState extends State<FeedPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _HomeActionButton(
-                      label: 'MULTIPLAYER',
-                      icon: Icons.groups_rounded,
+                      label: 'ADVENTURE',
+                      icon: Icons.map_rounded,
                       color: const Color(0xFF8B39FF),
-                      onTap: () => _showComingSoon('Multiplayer'),
+                      onTap: _openAdventureMap,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -718,6 +882,135 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
+  Widget _buildAdventureMap() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF0A1B4A), Color(0xFF07132E)],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: _backToHomeHub,
+                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.cyanAccent),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.route_rounded,
+                    color: Colors.cyanAccent.shade200,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ADVENTURE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 28,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                itemCount: _adventureLevels.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final level = _adventureLevels[index];
+                  final theme = _themeByValue(level.themeValue);
+                  final unlocked = level.unlocked;
+                  return Material(
+                    color: unlocked
+                        ? const Color(0xCC16356E)
+                        : const Color(0xCC3B4A62),
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      onTap: unlocked ? () => _startAdventureLevel(index) : null,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundColor: unlocked
+                                  ? Colors.cyanAccent.withValues(alpha: 0.2)
+                                  : Colors.white12,
+                              child: Text(
+                                '${level.id}',
+                                style: TextStyle(
+                                  color: unlocked ? Colors.cyanAccent : Colors.white54,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    level.title,
+                                    style: TextStyle(
+                                      color: unlocked ? Colors.white : Colors.white70,
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${theme.label} • ${level.difficultyValue.toUpperCase()} • ${level.questionCount} questions',
+                                    style: const TextStyle(color: Colors.white70),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: List.generate(3, (starIdx) {
+                                      final filled = starIdx < level.stars;
+                                      return Icon(
+                                        filled
+                                            ? Icons.star_rounded
+                                            : Icons.star_border_rounded,
+                                        size: 20,
+                                        color: filled
+                                            ? Colors.amberAccent
+                                            : Colors.white30,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (!unlocked)
+                              const Icon(Icons.lock_outline_rounded, color: Colors.white54)
+                            else
+                              const Icon(Icons.play_arrow_rounded, color: Colors.cyanAccent),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   _ThemeVisual _themeVisual(int index) {
     const visuals = [
       _ThemeVisual(color: Color(0xFF1EA5FF), icon: Icons.account_balance_rounded),
@@ -730,6 +1023,20 @@ class _FeedPageState extends State<FeedPage> {
       _ThemeVisual(color: Color(0xFFF2C22D), icon: Icons.public_rounded),
     ];
     return visuals[index % visuals.length];
+  }
+
+  _ThemeOption _themeByValue(String value) {
+    return _availableThemes.firstWhere(
+      (theme) => theme.value == value,
+      orElse: () => _availableThemes.first,
+    );
+  }
+
+  _ChoiceOption? _levelByValue(String value) {
+    for (final level in _availableLevels) {
+      if (level.value == value) return level;
+    }
+    return null;
   }
 }
 
@@ -752,6 +1059,26 @@ class _ThemeVisual {
 
   final Color color;
   final IconData icon;
+}
+
+class _AdventureLevelState {
+  _AdventureLevelState({
+    required this.id,
+    required this.title,
+    required this.themeValue,
+    required this.difficultyValue,
+    required this.questionCount,
+    required this.unlocked,
+  });
+
+  final int id;
+  final String title;
+  final String themeValue;
+  final String difficultyValue;
+  final int questionCount;
+  bool unlocked;
+  int stars = 0;
+  int bestScore = 0;
 }
 
 class _HomeActionButton extends StatelessWidget {
