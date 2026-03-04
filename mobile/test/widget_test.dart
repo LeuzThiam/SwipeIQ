@@ -12,6 +12,12 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
     );
+
+    expect(find.text('NEURON QUEST'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('play_solo_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('theme_card_tech')));
     await tester.pumpAndSettle();
 
     expect(find.text('SwipeIQ - Feed'), findsOneWidget);
@@ -26,11 +32,40 @@ void main() {
     expect(find.text('Score 1'), findsOneWidget);
     expect(find.text('Streak 1'), findsOneWidget);
   });
+
+  testWidgets(
+    'Une mauvaise reponse affiche la bonne reponse et reset la streak',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(home: FeedPage(source: _FakeQuestionSource())),
+      );
+
+      await tester.tap(find.byKey(const Key('play_solo_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('theme_card_tech')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Advanced Program Input'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Mauvaise reponse'), findsOneWidget);
+      expect(
+        find.textContaining('Bonne reponse: Application Programming Interface'),
+        findsOneWidget,
+      );
+      expect(find.text('Score 0'), findsOneWidget);
+      expect(find.text('Streak 0'), findsOneWidget);
+    },
+  );
 }
 
 class _FakeQuestionSource implements QuestionSource {
   @override
-  Future<List<Question>> loadQuestions() async {
+  Future<List<Question>> loadQuestions({
+    String? theme,
+    String? level,
+    String? lang,
+  }) async {
     return const [
       Question(
         id: 'q-test-1',

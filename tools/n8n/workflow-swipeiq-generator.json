@@ -1,7 +1,72 @@
 {
-  "name": "swipeiq-generator",
-  "nodes": [],
-  "connections": {},
+  "name": "swipeiq-questions-webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "questions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node_webhook_questions",
+      "name": "Webhook Questions",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $json.body ?? $json;\nconst requestedTheme = (body.theme ?? 'general').toString().trim() || 'general';\nconst requestedLevel = (body.level ?? 'facile').toString().trim() || 'facile';\nconst requestedLang = (body.lang ?? 'fr').toString().trim() || 'fr';\nconst slug = requestedTheme.toLowerCase().replace(/[^a-z0-9]+/g, '-');\n\nreturn [{\n  json: {\n    requestedTheme,\n    requestedLevel,\n    requestedLang,\n    questions: [\n      {\n        id: `${slug}-001`,\n        theme: requestedTheme,\n        level: requestedLevel,\n        question: `Question 1 (${requestedTheme}) : concept de base ?`,\n        choices: [\n          'Reponse A',\n          'Reponse B',\n          'Reponse C',\n          'Reponse D'\n        ],\n        answer: 0,\n        explanation: `Question generee par n8n pour le theme ${requestedTheme}.`\n      }\n    ]\n  }\n}];"
+      },
+      "id": "node_build_questions",
+      "name": "Build Questions Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {}
+      },
+      "id": "node_respond",
+      "name": "Respond Questions",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [760, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Questions": {
+      "main": [
+        [
+          {
+            "node": "Build Questions Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Questions Payload": {
+      "main": [
+        [
+          {
+            "node": "Respond Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "active": false,
-  "settings": {}
+  "settings": {
+    "executionTimeout": 300,
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "timezone": "America/Montreal"
+  }
 }
