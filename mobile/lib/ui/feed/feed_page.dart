@@ -46,6 +46,7 @@ class _FeedPageState extends State<FeedPage> {
   ];
 
   late final PageController _pageController;
+  QuestionSource? _activeSource;
   Timer? _questionTimer;
 
   List<Question> _questions = const [];
@@ -61,8 +62,12 @@ class _FeedPageState extends State<FeedPage> {
   _ChoiceOption? _selectedLevel;
   _ChoiceOption _selectedLang = _availableLangs[0];
   int? _questionLimit;
+  String? _activeThemeValue;
+  String? _activeLevelValue;
+  String? _activeLangValue;
   int _currentPageIndex = 0;
   int _remainingSeconds = _secondsPerQuestion;
+  bool _isAdvancingQuestion = false;
   int _currentStreak = 0;
   int _bestStreak = 0;
   int? _currentAdventureLevelIndex;
@@ -126,6 +131,12 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _startQuiz() async {
+    final source = widget.source ?? _resolveSource();
+    _activeSource = source;
+    _activeThemeValue = _selectedTheme.value;
+    _activeLevelValue = _selectedLevel?.value;
+    _activeLangValue = _selectedLang.value;
+
     setState(() {
       _isLoading = true;
       _isThemeSelectionStep = false;
@@ -142,11 +153,10 @@ class _FeedPageState extends State<FeedPage> {
     });
 
     try {
-      final source = widget.source ?? _resolveSource();
       final questions = await source.loadQuestions(
-        theme: _selectedTheme.value,
-        level: _selectedLevel?.value,
-        lang: _selectedLang.value,
+        theme: _activeThemeValue,
+        level: _activeLevelValue,
+        lang: _activeLangValue,
       );
       if (!mounted) return;
 
@@ -160,9 +170,9 @@ class _FeedPageState extends State<FeedPage> {
         return;
       }
 
-      final limitedQuestions =
-          (_questionLimit != null && questions.length > _questionLimit!)
-          ? questions.take(_questionLimit!).toList()
+      final target = _targetQuestionCount;
+      final limitedQuestions = questions.length > target
+          ? questions.take(target).toList()
           : questions;
 
       if (limitedQuestions.isEmpty) {
@@ -238,6 +248,19 @@ class _FeedPageState extends State<FeedPage> {
     _stopQuestionTimer();
 
     _triggerHapticFeedback(isCorrect);
+
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (!mounted || _isResultStep || _isLoading) {
+        return;
+      }
+      if (_currentPageIndex != questionIndex) {
+        return;
+      }
+      if (!_isQuestionLocked(questionIndex)) {
+        return;
+      }
+      _goToNextQuestion(questionIndex);
+    });
   }
 
   String _feedbackForQuestion(int index) {
@@ -264,21 +287,42 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _goToNextQuestion(int currentIndex) async {
-    _stopQuestionTimer();
-    if (currentIndex == _questions.length - 1) {
-      _applyAdventureProgressIfNeeded();
-      setState(() {
-        _isResultStep = true;
-      });
+    if (_isAdvancingQuestion) {
       return;
     }
+    _isAdvancingQuestion = true;
+    _stopQuestionTimer();
+    try {
+      if (currentIndex == _questions.length - 1) {
+        final target = _targetQuestionCount;
+        if (_questions.length < target) {
+          final appended = await _appendOneQuestionFromBackend();
+          if (appended) {
+            await _pageController.nextPage(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+            );
+            _resetQuestionTimer();
+            _startQuestionTimer();
+            return;
+          }
+        }
+        _applyAdventureProgressIfNeeded();
+        setState(() {
+          _isResultStep = true;
+        });
+        return;
+      }
 
-    await _pageController.nextPage(
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
-    _resetQuestionTimer();
-    _startQuestionTimer();
+      await _pageController.nextPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+      _resetQuestionTimer();
+      _startQuestionTimer();
+    } finally {
+      _isAdvancingQuestion = false;
+    }
   }
 
   void _restartGame() {
@@ -292,6 +336,10 @@ class _FeedPageState extends State<FeedPage> {
       _questions = const [];
       _selectedChoices = const [];
       _questionLimit = null;
+      _activeThemeValue = null;
+      _activeLevelValue = null;
+      _activeLangValue = null;
+      _activeSource = null;
       _currentAdventureLevelIndex = null;
       _nextAdventureLevelIndex = null;
       _currentPageIndex = 0;
@@ -314,6 +362,10 @@ class _FeedPageState extends State<FeedPage> {
       _isAdventureMapStep = false;
       _isAdventureMode = false;
       _questionLimit = null;
+      _activeThemeValue = null;
+      _activeLevelValue = null;
+      _activeLangValue = null;
+      _activeSource = null;
       _currentAdventureLevelIndex = null;
       _nextAdventureLevelIndex = null;
       _error = null;
@@ -335,6 +387,10 @@ class _FeedPageState extends State<FeedPage> {
       _isSoloThemeStep = false;
       _isAdventureMode = true;
       _questionLimit = null;
+      _activeThemeValue = null;
+      _activeLevelValue = null;
+      _activeLangValue = null;
+      _activeSource = null;
       _currentAdventureLevelIndex = null;
       _nextAdventureLevelIndex = null;
       _error = null;
@@ -682,7 +738,7 @@ class _FeedPageState extends State<FeedPage> {
           feedbackText: _feedbackForQuestion(index),
           onNextPressed: () => _goToNextQuestion(index),
           onSkipPressed: () => _goToNextQuestion(index),
-          isLastQuestion: index == _questions.length - 1,
+          isLastQuestion: _isSessionLastQuestionIndex(index),
           score: _score,
           progressValue: _progressValue,
           remainingSeconds: _remainingSeconds,
@@ -1083,6 +1139,66 @@ class _FeedPageState extends State<FeedPage> {
       if (level.value == value) return level;
     }
     return null;
+  }
+
+  bool _isSessionLastQuestionIndex(int index) {
+    return index >= _targetQuestionCount - 1;
+  }
+
+  int get _targetQuestionCount => _questionLimit ?? 10;
+
+  Future<bool> _appendOneQuestionFromBackend() async {
+    final source = _activeSource;
+    final theme = _activeThemeValue;
+    final lang = _activeLangValue;
+    if (source == null || theme == null || lang == null) {
+      return false;
+    }
+
+    try {
+      final fresh = await source.loadQuestions(
+        theme: theme,
+        level: _activeLevelValue,
+        lang: lang,
+      );
+      if (fresh.isEmpty) {
+        return false;
+      }
+
+      final next = _ensureUniqueQuestion(fresh.first);
+      if (!mounted) {
+        return false;
+      }
+      setState(() {
+        _questions = [..._questions, next];
+        _selectedChoices = [..._selectedChoices, null];
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Question _ensureUniqueQuestion(Question question) {
+    final ids = _questions.map((q) => q.id).toSet();
+    if (!ids.contains(question.id)) {
+      return question;
+    }
+    var suffix = 2;
+    var candidate = '${question.id}-$suffix';
+    while (ids.contains(candidate)) {
+      suffix++;
+      candidate = '${question.id}-$suffix';
+    }
+    return Question(
+      id: candidate,
+      theme: question.theme,
+      level: question.level,
+      question: question.question,
+      choices: question.choices,
+      answer: question.answer,
+      explanation: question.explanation,
+    );
   }
 }
 
