@@ -384,7 +384,9 @@ class _FeedPageState extends State<FeedPage> {
     if (!_isAdventureMode || _currentAdventureLevelIndex == null) return;
     final idx = _currentAdventureLevelIndex!;
     final level = _adventureLevels[idx];
-    final successRate = _questions.isEmpty ? 0 : (_score * 100 / _questions.length);
+    final successRate = _questions.isEmpty
+        ? 0
+        : (_score * 100 / _questions.length);
     final stars = successRate >= 90
         ? 3
         : successRate >= 75
@@ -421,9 +423,15 @@ class _FeedPageState extends State<FeedPage> {
 
   void _startQuestionTimer() {
     _stopQuestionTimer();
-    if (!mounted || _isThemeSelectionStep || _isResultStep || _isLoading) return;
-    if (_questions.isEmpty) return;
-    if (_isQuestionLocked(_currentPageIndex)) return;
+    if (!mounted || _isThemeSelectionStep || _isResultStep || _isLoading) {
+      return;
+    }
+    if (_questions.isEmpty) {
+      return;
+    }
+    if (_isQuestionLocked(_currentPageIndex)) {
+      return;
+    }
 
     _questionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted || _isThemeSelectionStep || _isResultStep || _isLoading) {
@@ -447,9 +455,9 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _showComingSoon(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$label arrive bientot')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('$label arrive bientot')));
   }
 
   Future<void> _openAdvancedOptions() async {
@@ -471,7 +479,10 @@ class _FeedPageState extends State<FeedPage> {
                   children: [
                     const Text(
                       'Options avancees',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     const Text('Niveau'),
@@ -550,7 +561,9 @@ class _FeedPageState extends State<FeedPage> {
       return Scaffold(
         body: _isSoloThemeStep
             ? _buildSoloThemeSelection()
-            : (_isAdventureMapStep ? _buildAdventureMap() : _buildThemeSelector()),
+            : (_isAdventureMapStep
+                  ? _buildAdventureMap()
+                  : _buildThemeSelector()),
       );
     }
 
@@ -571,7 +584,10 @@ class _FeedPageState extends State<FeedPage> {
                       duration: const Duration(milliseconds: 220),
                       transitionBuilder: (child, animation) {
                         return ScaleTransition(
-                          scale: Tween<double>(begin: 0.9, end: 1).animate(animation),
+                          scale: Tween<double>(
+                            begin: 0.9,
+                            end: 1,
+                          ).animate(animation),
                           child: child,
                         );
                       },
@@ -602,7 +618,9 @@ class _FeedPageState extends State<FeedPage> {
     if (_isThemeSelectionStep) {
       return _isSoloThemeStep
           ? _buildSoloThemeSelection()
-          : (_isAdventureMapStep ? _buildAdventureMap() : _buildThemeSelector());
+          : (_isAdventureMapStep
+                ? _buildAdventureMap()
+                : _buildThemeSelector());
     }
 
     if (_isLoading) {
@@ -624,7 +642,9 @@ class _FeedPageState extends State<FeedPage> {
         total: _questions.length,
         bestStreak: _bestStreak,
         answeredCount: _answeredCount,
-        onNextRound: _isAdventureMode ? _nextAdventureRoundOrReplay : _retryCurrentConfig,
+        onNextRound: _isAdventureMode
+            ? _nextAdventureRoundOrReplay
+            : _retryCurrentConfig,
         onChangeTheme: _isAdventureMode
             ? _goToAdventureMapFromResult
             : _restartGame,
@@ -772,7 +792,10 @@ class _FeedPageState extends State<FeedPage> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.redAccent),
+                ),
               ),
           ],
         ),
@@ -798,7 +821,10 @@ class _FeedPageState extends State<FeedPage> {
                 children: [
                   IconButton(
                     onPressed: _backToHomeHub,
-                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.cyanAccent),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.cyanAccent,
+                    ),
                   ),
                   const Spacer(),
                   Icon(
@@ -900,13 +926,13 @@ class _FeedPageState extends State<FeedPage> {
                 children: [
                   IconButton(
                     onPressed: _backToHomeHub,
-                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.cyanAccent),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.cyanAccent,
+                    ),
                   ),
                   const Spacer(),
-                  Icon(
-                    Icons.route_rounded,
-                    color: Colors.cyanAccent.shade200,
-                  ),
+                  Icon(Icons.route_rounded, color: Colors.cyanAccent.shade200),
                   const SizedBox(width: 8),
                   const Text(
                     'ADVENTURE',
@@ -937,7 +963,9 @@ class _FeedPageState extends State<FeedPage> {
                         : const Color(0xCC3B4A62),
                     borderRadius: BorderRadius.circular(16),
                     child: InkWell(
-                      onTap: unlocked ? () => _startAdventureLevel(index) : null,
+                      onTap: unlocked
+                          ? () => _startAdventureLevel(index)
+                          : null,
                       borderRadius: BorderRadius.circular(16),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -951,7 +979,9 @@ class _FeedPageState extends State<FeedPage> {
                               child: Text(
                                 '${level.id}',
                                 style: TextStyle(
-                                  color: unlocked ? Colors.cyanAccent : Colors.white54,
+                                  color: unlocked
+                                      ? Colors.cyanAccent
+                                      : Colors.white54,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -964,7 +994,9 @@ class _FeedPageState extends State<FeedPage> {
                                   Text(
                                     level.title,
                                     style: TextStyle(
-                                      color: unlocked ? Colors.white : Colors.white70,
+                                      color: unlocked
+                                          ? Colors.white
+                                          : Colors.white70,
                                       fontSize: 19,
                                       fontWeight: FontWeight.w800,
                                     ),
@@ -972,7 +1004,9 @@ class _FeedPageState extends State<FeedPage> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '${theme.label} • ${level.difficultyValue.toUpperCase()} • ${level.questionCount} questions',
-                                    style: const TextStyle(color: Colors.white70),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
@@ -994,9 +1028,15 @@ class _FeedPageState extends State<FeedPage> {
                             ),
                             const SizedBox(width: 8),
                             if (!unlocked)
-                              const Icon(Icons.lock_outline_rounded, color: Colors.white54)
+                              const Icon(
+                                Icons.lock_outline_rounded,
+                                color: Colors.white54,
+                              )
                             else
-                              const Icon(Icons.play_arrow_rounded, color: Colors.cyanAccent),
+                              const Icon(
+                                Icons.play_arrow_rounded,
+                                color: Colors.cyanAccent,
+                              ),
                           ],
                         ),
                       ),
@@ -1013,12 +1053,18 @@ class _FeedPageState extends State<FeedPage> {
 
   _ThemeVisual _themeVisual(int index) {
     const visuals = [
-      _ThemeVisual(color: Color(0xFF1EA5FF), icon: Icons.account_balance_rounded),
+      _ThemeVisual(
+        color: Color(0xFF1EA5FF),
+        icon: Icons.account_balance_rounded,
+      ),
       _ThemeVisual(color: Color(0xFF34C94A), icon: Icons.sports_soccer_rounded),
       _ThemeVisual(color: Color(0xFF9344FF), icon: Icons.science_outlined),
       _ThemeVisual(color: Color(0xFFFFA726), icon: Icons.music_note_rounded),
       _ThemeVisual(color: Color(0xFFFF7043), icon: Icons.settings_rounded),
-      _ThemeVisual(color: Color(0xFFF44336), icon: Icons.movie_creation_outlined),
+      _ThemeVisual(
+        color: Color(0xFFF44336),
+        icon: Icons.movie_creation_outlined,
+      ),
       _ThemeVisual(color: Color(0xFF7C8798), icon: Icons.lock_outline_rounded),
       _ThemeVisual(color: Color(0xFFF2C22D), icon: Icons.public_rounded),
     ];
@@ -1103,9 +1149,15 @@ class _HomeActionButton extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withValues(alpha: 0.95), color.withValues(alpha: 0.78)],
+            colors: [
+              color.withValues(alpha: 0.95),
+              color.withValues(alpha: 0.78),
+            ],
           ),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.35),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
               color: color.withValues(alpha: 0.35),
@@ -1210,9 +1262,15 @@ class _ThemeSquareCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.95), color.withValues(alpha: 0.8)],
+              colors: [
+                color.withValues(alpha: 0.95),
+                color.withValues(alpha: 0.8),
+              ],
             ),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.45), width: 2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.45),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: color.withValues(alpha: 0.28),

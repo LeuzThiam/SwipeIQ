@@ -189,7 +189,9 @@ class QuestionCard extends StatelessWidget {
                           ? const SizedBox.shrink()
                           : Padding(
                               key: ValueKey(feedbackText),
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Text(
                                 feedbackText,
                                 textAlign: TextAlign.center,
@@ -248,7 +250,10 @@ class QuestionCard extends StatelessWidget {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _BottomStub(icon: Icons.settings_outlined, label: 'SETTINGS'),
+                          _BottomStub(
+                            icon: Icons.settings_outlined,
+                            label: 'SETTINGS',
+                          ),
                           _BottomStub(
                             icon: Icons.person_outline_rounded,
                             label: 'PROFILE',
@@ -333,10 +338,15 @@ class _AnswerCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withValues(alpha: 0.96), color.withValues(alpha: 0.82)],
+              colors: [
+                color.withValues(alpha: 0.96),
+                color.withValues(alpha: 0.82),
+              ],
             ),
             border: Border.all(
-              color: glow ? Colors.greenAccent : Colors.white.withValues(alpha: 0.55),
+              color: glow
+                  ? Colors.greenAccent
+                  : Colors.white.withValues(alpha: 0.55),
               width: glow ? 3 : 2,
             ),
             boxShadow: glow
@@ -364,7 +374,8 @@ class _AnswerCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (trailingIcon != null) Icon(trailingIcon, color: trailingColor),
+                if (trailingIcon != null)
+                  Icon(trailingIcon, color: trailingColor),
               ],
             ),
           ),

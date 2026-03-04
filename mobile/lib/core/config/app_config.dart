@@ -22,8 +22,7 @@ class AppConfig {
     }
 
     return switch (defaultTargetPlatform) {
-      TargetPlatform.android =>
-        'http://10.0.2.2:5678/webhook/questions',
+      TargetPlatform.android => 'http://10.0.2.2:5678/webhook/questions',
       _ => 'http://localhost:5678/webhook/questions',
     };
   }

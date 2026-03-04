@@ -36,8 +36,11 @@ class QuizErrorView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline_rounded,
-                      size: 52, color: Color(0xFFFF6B6B)),
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    size: 52,
+                    color: Color(0xFFFF6B6B),
+                  ),
                   const SizedBox(height: 10),
                   const Text(
                     'OUPS, ERREUR RESEAU',

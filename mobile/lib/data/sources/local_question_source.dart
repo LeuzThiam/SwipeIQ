@@ -24,9 +24,11 @@ class LocalQuestionSource implements QuestionSource {
     final trimmedTheme = theme?.trim();
     if (trimmedTheme != null && trimmedTheme.isNotEmpty) {
       jsonQuestions = jsonQuestions
-          .where((item) =>
-              (item['theme']?.toString().toLowerCase() ?? '') ==
-              trimmedTheme.toLowerCase())
+          .where(
+            (item) =>
+                (item['theme']?.toString().toLowerCase() ?? '') ==
+                trimmedTheme.toLowerCase(),
+          )
           .toList();
     }
 

@@ -73,7 +73,10 @@ class QuizLoadingView extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Connexion n8n + LLM active',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],

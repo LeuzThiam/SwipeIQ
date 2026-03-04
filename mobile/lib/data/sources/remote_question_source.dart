@@ -59,7 +59,9 @@ class RemoteQuestionSource implements QuestionSource {
         ? 'fr'
         : lang.trim();
     return {
-      'theme': (theme == null || theme.trim().isEmpty) ? 'general' : theme.trim(),
+      'theme': (theme == null || theme.trim().isEmpty)
+          ? 'general'
+          : theme.trim(),
       'level': normalizedLevel,
       'lang': normalizedLang,
     };
@@ -124,9 +126,7 @@ class RemoteQuestionSource implements QuestionSource {
       'theme':
           raw['theme']?.toString() ?? raw['category']?.toString() ?? 'general',
       'level':
-          raw['level']?.toString() ??
-          raw['difficulty']?.toString() ??
-          'facile',
+          raw['level']?.toString() ?? raw['difficulty']?.toString() ?? 'facile',
       'question': questionText,
       'choices': choices,
       'answer': answer,

@@ -178,7 +178,9 @@ class QuizResultView extends StatelessWidget {
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF34C94A),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -197,7 +199,9 @@ class QuizResultView extends StatelessWidget {
                               style: FilledButton.styleFrom(
                                 backgroundColor: const Color(0xFF1EA5FF),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -213,12 +217,18 @@ class QuizResultView extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 18,
+                      ),
                       color: Colors.black.withValues(alpha: 0.2),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _BottomStub(icon: Icons.settings_outlined, label: 'SETTINGS'),
+                          _BottomStub(
+                            icon: Icons.settings_outlined,
+                            label: 'SETTINGS',
+                          ),
                           _BottomStub(
                             icon: Icons.person_outline_rounded,
                             label: 'PROFILE',
@@ -255,7 +265,10 @@ class _StatRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text('• ', style: TextStyle(color: Colors.cyanAccent, fontSize: 20)),
+        const Text(
+          '• ',
+          style: TextStyle(color: Colors.cyanAccent, fontSize: 20),
+        ),
         Expanded(
           child: Text(
             '$label: $value',
