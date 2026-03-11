@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,14 +35,14 @@ class _FeedPageState extends State<FeedPage> {
   static const int _secondsPerQuestion = 45;
   static const int _adventureTotalLevels = 100;
   static const List<_ThemeOption> _availableThemes = [
-    _ThemeOption(label: 'Culture G', value: 'culture_g'),
+    _ThemeOption(label: 'Culture generale', value: 'culture_g'),
     _ThemeOption(label: 'Sciences', value: 'sciences'),
-    _ThemeOption(label: 'Tech', value: 'tech'),
-    _ThemeOption(label: 'Business', value: 'business'),
-    _ThemeOption(label: 'Arts & Pop', value: 'arts_pop'),
+    _ThemeOption(label: 'Histoire', value: 'business'),
+    _ThemeOption(label: 'Geographie', value: 'langues'),
     _ThemeOption(label: 'Sport', value: 'sport'),
-    _ThemeOption(label: 'Vie pratique', value: 'vie_pratique'),
-    _ThemeOption(label: 'Langues', value: 'langues'),
+    _ThemeOption(label: 'Cinema & series', value: 'arts_pop'),
+    _ThemeOption(label: 'Technologie', value: 'tech'),
+    _ThemeOption(label: 'Musique', value: 'vie_pratique'),
   ];
 
   static const List<_ChoiceOption> _availableLevels = [
@@ -640,6 +641,8 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Widget _buildSoloThemeSelection() {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = (screenWidth - 46) / 2;
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -672,41 +675,56 @@ class _FeedPageState extends State<FeedPage> {
               ),
             ),
             const Text(
-              'THEME SELECTION',
+              'Choisir un theme',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 34,
+                fontSize: 42,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
+                letterSpacing: 0.5,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _availableThemes.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 0.93,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    ..._availableThemes.map((option) {
+                      final visual = _themeVisual(option.value);
+                      return SizedBox(
+                        width: cardWidth,
+                        child: _ThemeWideCard(
+                          key: Key('theme_card_${option.value}'),
+                          title: option.label,
+                          color: visual.color,
+                          icon: visual.icon,
+                          onTap: () {
+                            setState(() {
+                              _selectedTheme = option;
+                            });
+                            _startQuiz();
+                          },
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 2, width: double.infinity),
+                    _RandomThemeCard(
+                      onTap: () {
+                        final random = math.Random();
+                        final option =
+                            _availableThemes[random.nextInt(
+                              _availableThemes.length,
+                            )];
+                        setState(() {
+                          _selectedTheme = option;
+                        });
+                        _startQuiz();
+                      },
+                    ),
+                  ],
                 ),
-                itemBuilder: (context, index) {
-                  final option = _availableThemes[index];
-                  final visual = _themeVisual(index);
-                  return _ThemeSquareCard(
-                    key: Key('theme_card_${option.value}'),
-                    title: option.label.toUpperCase(),
-                    color: visual.color,
-                    icon: visual.icon,
-                    onTap: () {
-                      setState(() {
-                        _selectedTheme = option;
-                      });
-                      _startQuiz();
-                    },
-                  );
-                },
               ),
             ),
           ],
@@ -902,24 +920,41 @@ class _FeedPageState extends State<FeedPage> {
     );
   }
 
-  _ThemeVisual _themeVisual(int index) {
-    const visuals = [
-      _ThemeVisual(
-        color: Color(0xFF1EA5FF),
-        icon: Icons.account_balance_rounded,
+  _ThemeVisual _themeVisual(String value) {
+    return switch (value) {
+      'culture_g' => const _ThemeVisual(
+        color: Color(0xFFF7A900),
+        icon: Icons.lightbulb_rounded,
       ),
-      _ThemeVisual(color: Color(0xFF34C94A), icon: Icons.sports_soccer_rounded),
-      _ThemeVisual(color: Color(0xFF9344FF), icon: Icons.science_outlined),
-      _ThemeVisual(color: Color(0xFFFFA726), icon: Icons.music_note_rounded),
-      _ThemeVisual(color: Color(0xFFFF7043), icon: Icons.settings_rounded),
-      _ThemeVisual(
-        color: Color(0xFFF44336),
-        icon: Icons.movie_creation_outlined,
+      'sciences' => const _ThemeVisual(
+        color: Color(0xFF49B95B),
+        icon: Icons.science_rounded,
       ),
-      _ThemeVisual(color: Color(0xFF7C8798), icon: Icons.lock_outline_rounded),
-      _ThemeVisual(color: Color(0xFFF2C22D), icon: Icons.public_rounded),
-    ];
-    return visuals[index % visuals.length];
+      'business' => const _ThemeVisual(
+        color: Color(0xFFC57A39),
+        icon: Icons.menu_book_rounded,
+      ),
+      'langues' => const _ThemeVisual(
+        color: Color(0xFF2CAFD2),
+        icon: Icons.public_rounded,
+      ),
+      'sport' => const _ThemeVisual(
+        color: Color(0xFF56B04C),
+        icon: Icons.sports_soccer_rounded,
+      ),
+      'arts_pop' => const _ThemeVisual(
+        color: Color(0xFFE4513A),
+        icon: Icons.movie_creation_rounded,
+      ),
+      'tech' => const _ThemeVisual(
+        color: Color(0xFF2290D9),
+        icon: Icons.smart_toy_rounded,
+      ),
+      _ => const _ThemeVisual(
+        color: Color(0xFF8751E5),
+        icon: Icons.music_note_rounded,
+      ),
+    };
   }
 
   _ThemeOption _themeByValue(String value) {
@@ -1243,8 +1278,8 @@ class _AdventureTag extends StatelessWidget {
   }
 }
 
-class _ThemeSquareCard extends StatelessWidget {
-  const _ThemeSquareCard({
+class _ThemeWideCard extends StatelessWidget {
+  const _ThemeWideCard({
     required this.title,
     required this.color,
     required this.icon,
@@ -1263,10 +1298,10 @@ class _ThemeSquareCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(26),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -1288,23 +1323,76 @@ class _ThemeSquareCard extends StatelessWidget {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
               children: [
-                Icon(icon, size: 42, color: Colors.white),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+                Icon(icon, size: 34, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RandomThemeCard extends StatelessWidget {
+  const _RandomThemeCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        child: Ink(
+          width: double.infinity,
+          height: 76,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF2D5DB8), Color(0xFF1E3E8C)],
+            ),
+            border: Border.all(color: Colors.white38, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2D5DB8).withValues(alpha: 0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.casino_rounded, color: Colors.white, size: 30),
+              SizedBox(width: 10),
+              Text(
+                'Aleatoire',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 30,
+                ),
+              ),
+            ],
           ),
         ),
       ),
