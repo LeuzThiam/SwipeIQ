@@ -91,6 +91,15 @@ class QuestionCard extends StatelessWidget {
                         letterSpacing: 1,
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Question ${questionIndex + 1} / $totalQuestions',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 22),

@@ -12,6 +12,12 @@ class QuizResultView extends StatelessWidget {
     required this.onBack,
     this.nextRoundLabel = 'NEXT ROUND',
     this.secondaryLabel = 'THEME SELECTION',
+    this.adventurePassed,
+    this.adventureStars,
+    this.adventureObjective,
+    this.rewardPoints,
+    this.rewardCoins,
+    this.unlockedMessage,
     super.key,
   });
 
@@ -25,6 +31,12 @@ class QuizResultView extends StatelessWidget {
   final VoidCallback onBack;
   final String nextRoundLabel;
   final String secondaryLabel;
+  final bool? adventurePassed;
+  final int? adventureStars;
+  final String? adventureObjective;
+  final int? rewardPoints;
+  final int? rewardCoins;
+  final String? unlockedMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +180,81 @@ class QuizResultView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    if (adventurePassed != null) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                        decoration: BoxDecoration(
+                          color: adventurePassed!
+                              ? const Color(0xB8256F3B)
+                              : const Color(0xB8732C2C),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              adventurePassed!
+                                  ? 'Niveau reussi'
+                                  : 'Niveau echoue',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 20,
+                              ),
+                            ),
+                            if (adventureObjective != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  adventureObjective!,
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: List.generate(3, (index) {
+                                final filled = index < (adventureStars ?? 0);
+                                return Icon(
+                                  filled
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  color: filled
+                                      ? Colors.amberAccent
+                                      : Colors.white54,
+                                  size: 26,
+                                );
+                              }),
+                            ),
+                            if ((rewardPoints ?? 0) > 0 ||
+                                (rewardCoins ?? 0) > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  '+${rewardPoints ?? 0} points   +${rewardCoins ?? 0} coins',
+                                  style: const TextStyle(
+                                    color: Colors.cyanAccent,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            if (unlockedMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text(
+                                  unlockedMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.amberAccent,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(

@@ -32,6 +32,7 @@ class FeedPage extends StatefulWidget {
 
 class _FeedPageState extends State<FeedPage> {
   static const int _secondsPerQuestion = 45;
+  static const int _adventureTotalLevels = 100;
   static const List<_ThemeOption> _availableThemes = [
     _ThemeOption(label: 'Culture G', value: 'culture_g'),
     _ThemeOption(label: 'Sciences', value: 'sciences'),
@@ -80,53 +81,22 @@ class _FeedPageState extends State<FeedPage> {
   int _bestStreak = 0;
   int? _currentAdventureLevelIndex;
   int? _nextAdventureLevelIndex;
-  final List<_AdventureLevelState> _adventureLevels = [
-    _AdventureLevelState(
-      id: 1,
-      title: 'Niveau 1',
-      themeValue: 'culture_g',
-      difficultyValue: 'facile',
-      questionCount: 3,
-      unlocked: true,
-    ),
-    _AdventureLevelState(
-      id: 2,
-      title: 'Niveau 2',
-      themeValue: 'sciences',
-      difficultyValue: 'facile',
-      questionCount: 3,
-      unlocked: false,
-    ),
-    _AdventureLevelState(
-      id: 3,
-      title: 'Niveau 3',
-      themeValue: 'tech',
-      difficultyValue: 'moyen',
-      questionCount: 4,
-      unlocked: false,
-    ),
-    _AdventureLevelState(
-      id: 4,
-      title: 'Niveau 4',
-      themeValue: 'business',
-      difficultyValue: 'moyen',
-      questionCount: 4,
-      unlocked: false,
-    ),
-    _AdventureLevelState(
-      id: 5,
-      title: 'Niveau 5',
-      themeValue: 'sport',
-      difficultyValue: 'difficile',
-      questionCount: 5,
-      unlocked: false,
-    ),
-  ];
+  late final List<_AdventureLevelState> _adventureLevels;
+  int _adventureTotalStars = 0;
+  int _adventureTotalScore = 0;
+  int _adventureTotalCoins = 0;
+  int _adventureCompletedLevels = 0;
+  int _lastAdventureStars = 0;
+  bool _lastAdventurePassed = false;
+  int _lastAdventureRewardPoints = 0;
+  int _lastAdventureRewardCoins = 0;
+  String? _lastAdventureUnlockedMessage;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _adventureLevels = _buildAdventureLevels();
     if (widget.entryMode == FeedEntryMode.adventureMap) {
       _isAdventureMapStep = true;
       _isAdventureMode = true;
@@ -161,6 +131,11 @@ class _FeedPageState extends State<FeedPage> {
       _remainingSeconds = _secondsPerQuestion;
       _currentStreak = 0;
       _bestStreak = 0;
+      _lastAdventureStars = 0;
+      _lastAdventurePassed = false;
+      _lastAdventureRewardPoints = 0;
+      _lastAdventureRewardCoins = 0;
+      _lastAdventureUnlockedMessage = null;
     });
 
     try {
@@ -418,26 +393,57 @@ class _FeedPageState extends State<FeedPage> {
     if (!_isAdventureMode || _currentAdventureLevelIndex == null) return;
     final idx = _currentAdventureLevelIndex!;
     final level = _adventureLevels[idx];
-    final successRate = _questions.isEmpty
-        ? 0
-        : (_score * 100 / _questions.length);
-    final stars = successRate >= 90
-        ? 3
-        : successRate >= 75
-        ? 2
-        : successRate >= 60
-        ? 1
-        : 0;
+    final score = _score;
+    final passed = score >= level.minCorrectToPass;
+    var stars = 0;
+    if (passed) {
+      stars = 1;
+      if (score >= level.minCorrectToPass + 1) stars = 2;
+      if (score == level.questionCount) stars = 3;
+    }
 
+    final wasCompleted = level.completed;
+    final previousStars = level.stars;
     if (stars > level.stars) {
       level.stars = stars;
     }
-    if (_score > level.bestScore) {
-      level.bestScore = _score;
+    if (score > level.bestScore) {
+      level.bestScore = score;
     }
-    if (stars > 0 && idx + 1 < _adventureLevels.length) {
-      _adventureLevels[idx + 1].unlocked = true;
+    if (passed) {
+      level.completed = true;
+    }
+
+    _lastAdventurePassed = passed;
+    _lastAdventureStars = stars;
+    _lastAdventureRewardPoints = 0;
+    _lastAdventureRewardCoins = 0;
+    _lastAdventureUnlockedMessage = null;
+
+    if (passed) {
+      final points = level.rewardPoints;
+      final coins = level.rewardCoins;
+      _adventureTotalScore += points;
+      _adventureTotalCoins += coins;
+      _lastAdventureRewardPoints = points;
+      _lastAdventureRewardCoins = coins;
+    }
+
+    if (!wasCompleted && level.completed) {
+      _adventureCompletedLevels++;
+    }
+    if (level.stars != previousStars) {
+      _adventureTotalStars += (level.stars - previousStars);
+    }
+
+    if (passed && idx + 1 < _adventureLevels.length) {
+      final nextLevel = _adventureLevels[idx + 1];
+      final wasUnlocked = nextLevel.unlocked;
+      nextLevel.unlocked = true;
       _nextAdventureLevelIndex = idx + 1;
+      if (!wasUnlocked) {
+        _lastAdventureUnlockedMessage = 'Niveau ${nextLevel.id} debloque !';
+      }
     } else {
       _nextAdventureLevelIndex = null;
     }
@@ -565,8 +571,11 @@ class _FeedPageState extends State<FeedPage> {
     }
 
     if (_isResultStep) {
+      final currentLevel = _currentAdventureLevel;
       return QuizResultView(
-        themeLabel: _selectedTheme.label,
+        themeLabel: _isAdventureMode && currentLevel != null
+            ? currentLevel.title
+            : _selectedTheme.label,
         score: _score,
         total: _questions.length,
         bestStreak: _bestStreak,
@@ -582,6 +591,16 @@ class _FeedPageState extends State<FeedPage> {
             ? 'REPLAY LEVEL'
             : 'NEXT ROUND',
         secondaryLabel: _isAdventureMode ? 'ADVENTURE MAP' : 'THEME SELECTION',
+        adventurePassed: _isAdventureMode ? _lastAdventurePassed : null,
+        adventureStars: _isAdventureMode ? _lastAdventureStars : null,
+        adventureObjective: _isAdventureMode && currentLevel != null
+            ? 'Objectif: ${currentLevel.minCorrectToPass}/${currentLevel.questionCount}'
+            : null,
+        rewardPoints: _isAdventureMode ? _lastAdventureRewardPoints : null,
+        rewardCoins: _isAdventureMode ? _lastAdventureRewardCoins : null,
+        unlockedMessage: _isAdventureMode
+            ? _lastAdventureUnlockedMessage
+            : null,
       );
     }
 
@@ -735,7 +754,16 @@ class _FeedPageState extends State<FeedPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: _AdventureProgressPanel(
+                completedLevels: _adventureCompletedLevels,
+                totalLevels: _adventureLevels.length,
+                totalStars: _adventureTotalStars,
+                totalScore: _adventureTotalScore,
+                totalCoins: _adventureTotalCoins,
+              ),
+            ),
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
@@ -745,6 +773,16 @@ class _FeedPageState extends State<FeedPage> {
                   final level = _adventureLevels[index];
                   final theme = _themeByValue(level.themeValue);
                   final unlocked = level.unlocked;
+                  final statusLabel = level.completed
+                      ? 'Termine'
+                      : unlocked
+                      ? 'Disponible'
+                      : 'Verrouille';
+                  final statusColor = level.completed
+                      ? const Color(0xFF6CCF4F)
+                      : unlocked
+                      ? const Color(0xFF1EA5FF)
+                      : const Color(0xFF7A879A);
                   return Material(
                     color: unlocked
                         ? const Color(0xCC16356E)
@@ -795,6 +833,31 @@ class _FeedPageState extends State<FeedPage> {
                                     style: const TextStyle(
                                       color: Colors.white70,
                                     ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Objectif: ${level.minCorrectToPass} bonnes reponses',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    children: [
+                                      _AdventureTag(
+                                        icon: Icons.workspace_premium_rounded,
+                                        label:
+                                            '+${level.rewardPoints} pts / +${level.rewardCoins} coins',
+                                      ),
+                                      _AdventureTag(
+                                        icon: Icons.flag_rounded,
+                                        label: statusLabel,
+                                        color: statusColor,
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
@@ -873,8 +936,81 @@ class _FeedPageState extends State<FeedPage> {
     return null;
   }
 
+  List<_AdventureLevelState> _buildAdventureLevels() {
+    final levels = <_AdventureLevelState>[];
+    for (var i = 1; i <= _adventureTotalLevels; i++) {
+      final difficulty = _difficultyForLevel(i);
+      final questionCount = _questionCountForLevel(i);
+      final minCorrect = _minCorrectToPass(questionCount, difficulty);
+      levels.add(
+        _AdventureLevelState(
+          id: i,
+          title: 'Niveau $i',
+          themeValue: _availableThemes[(i - 1) % _availableThemes.length].value,
+          difficultyValue: difficulty,
+          questionCount: questionCount,
+          minCorrectToPass: minCorrect,
+          rewardPoints: _rewardPointsForLevel(i, difficulty),
+          rewardCoins: _rewardCoinsForLevel(i, difficulty),
+          unlocked: i == 1,
+        ),
+      );
+    }
+    return levels;
+  }
+
+  String _difficultyForLevel(int levelId) {
+    if (levelId <= 10) return 'facile';
+    if (levelId <= 30) return 'moyen';
+    return 'difficile';
+  }
+
+  int _questionCountForLevel(int levelId) {
+    if (levelId <= 10) return 5 + ((levelId - 1) ~/ 5);
+    if (levelId <= 30) return 7 + ((levelId - 11) ~/ 10);
+    return 9 + ((levelId - 31) ~/ 20);
+  }
+
+  int _minCorrectToPass(int questionCount, String difficulty) {
+    final ratio = switch (difficulty) {
+      'facile' => 0.65,
+      'moyen' => 0.7,
+      _ => 0.75,
+    };
+    var minCorrect = (questionCount * ratio).ceil();
+    if (minCorrect < 1) minCorrect = 1;
+    if (minCorrect > questionCount) minCorrect = questionCount;
+    return minCorrect;
+  }
+
+  int _rewardPointsForLevel(int levelId, String difficulty) {
+    final base = switch (difficulty) {
+      'facile' => 80,
+      'moyen' => 140,
+      _ => 220,
+    };
+    return base + (levelId * 5);
+  }
+
+  int _rewardCoinsForLevel(int levelId, String difficulty) {
+    final base = switch (difficulty) {
+      'facile' => 10,
+      'moyen' => 18,
+      _ => 25,
+    };
+    return base + (levelId ~/ 5);
+  }
+
   bool _isSessionLastQuestionIndex(int index) {
     return index >= _targetQuestionCount - 1;
+  }
+
+  _AdventureLevelState? get _currentAdventureLevel {
+    final idx = _currentAdventureLevelIndex;
+    if (idx == null || idx < 0 || idx >= _adventureLevels.length) {
+      return null;
+    }
+    return _adventureLevels[idx];
   }
 
   int get _targetQuestionCount => _questionLimit ?? 10;
@@ -962,6 +1098,9 @@ class _AdventureLevelState {
     required this.themeValue,
     required this.difficultyValue,
     required this.questionCount,
+    required this.minCorrectToPass,
+    required this.rewardPoints,
+    required this.rewardCoins,
     required this.unlocked,
   });
 
@@ -970,9 +1109,138 @@ class _AdventureLevelState {
   final String themeValue;
   final String difficultyValue;
   final int questionCount;
+  final int minCorrectToPass;
+  final int rewardPoints;
+  final int rewardCoins;
   bool unlocked;
+  bool completed = false;
   int stars = 0;
   int bestScore = 0;
+}
+
+class _AdventureProgressPanel extends StatelessWidget {
+  const _AdventureProgressPanel({
+    required this.completedLevels,
+    required this.totalLevels,
+    required this.totalStars,
+    required this.totalScore,
+    required this.totalCoins,
+  });
+
+  final int completedLevels;
+  final int totalLevels;
+  final int totalStars;
+  final int totalScore;
+  final int totalCoins;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = totalLevels == 0 ? 0.0 : completedLevels / totalLevels;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xB8142F66),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Progression aventure',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$completedLevels/$totalLevels',
+                style: const TextStyle(
+                  color: Colors.cyanAccent,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor: Colors.white12,
+              color: const Color(0xFF34C94A),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 6,
+            children: [
+              _AdventureTag(
+                icon: Icons.star_rounded,
+                label: '$totalStars etoiles',
+                color: const Color(0xFFFFC107),
+              ),
+              _AdventureTag(
+                icon: Icons.trending_up_rounded,
+                label: '$totalScore points',
+                color: const Color(0xFF1EA5FF),
+              ),
+              _AdventureTag(
+                icon: Icons.monetization_on_rounded,
+                label: '$totalCoins coins',
+                color: const Color(0xFF79D75E),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdventureTag extends StatelessWidget {
+  const _AdventureTag({
+    required this.icon,
+    required this.label,
+    this.color = Colors.white70,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Colors.black.withValues(alpha: 0.18),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ThemeSquareCard extends StatelessWidget {
