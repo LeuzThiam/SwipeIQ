@@ -13,7 +13,7 @@ import 'widgets/quiz_error_view.dart';
 import 'widgets/quiz_loading_view.dart';
 import 'widgets/quiz_result_view.dart';
 
-enum FeedEntryMode { themeSelection, adventureMap }
+enum FeedEntryMode { themeSelection, adventureMap, quickQuiz }
 
 class FeedPage extends StatefulWidget {
   const FeedPage({
@@ -80,6 +80,7 @@ class _FeedPageState extends State<FeedPage> {
   bool _isAdvancingQuestion = false;
   int _currentStreak = 0;
   int _bestStreak = 0;
+  bool _isQuickQuizMode = false;
   int? _currentAdventureLevelIndex;
   int? _nextAdventureLevelIndex;
   late final List<_AdventureLevelState> _adventureLevels;
@@ -102,6 +103,14 @@ class _FeedPageState extends State<FeedPage> {
       _isAdventureMapStep = true;
       _isAdventureMode = true;
     }
+    if (widget.entryMode == FeedEntryMode.quickQuiz) {
+      _isQuickQuizMode = true;
+      _isThemeSelectionStep = false;
+      _questionLimit = 10;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startQuickQuiz();
+      });
+    }
   }
 
   QuestionSource _resolveSource() {
@@ -113,10 +122,13 @@ class _FeedPageState extends State<FeedPage> {
     return RemoteQuestionSource(endpoint: AppConfig.questionsUrl);
   }
 
-  Future<void> _startQuiz() async {
+  Future<void> _startQuiz({
+    bool useSelectedTheme = true,
+    int? forcedQuestionLimit,
+  }) async {
     final source = widget.source ?? _resolveSource();
     _activeSource = source;
-    _activeThemeValue = _selectedTheme.value;
+    _activeThemeValue = useSelectedTheme ? _selectedTheme.value : null;
     _activeLevelValue = _selectedLevel?.value;
     _activeLangValue = _selectedLang.value;
 
@@ -140,11 +152,13 @@ class _FeedPageState extends State<FeedPage> {
     });
 
     try {
-      final questions = await source.loadQuestions(
-        theme: _activeThemeValue,
-        level: _activeLevelValue,
-        lang: _activeLangValue,
-      );
+      final questions = _isQuickQuizMode
+          ? await _loadQuickQuizQuestions(source, forcedQuestionLimit ?? 10)
+          : await source.loadQuestions(
+              theme: _activeThemeValue,
+              level: _activeLevelValue,
+              lang: _activeLangValue,
+            );
       if (!mounted) return;
 
       if (questions.isEmpty) {
@@ -152,22 +166,31 @@ class _FeedPageState extends State<FeedPage> {
           _error =
               'Aucune question retournee pour le theme "${_selectedTheme.label}".';
           _isLoading = false;
-          _isThemeSelectionStep = true;
+          _isThemeSelectionStep = !_isQuickQuizMode;
         });
         return;
       }
 
-      final target = _targetQuestionCount;
+      final target = forcedQuestionLimit ?? _targetQuestionCount;
       final limitedQuestions = questions.length > target
           ? questions.take(target).toList()
           : questions;
+
+      if (_isQuickQuizMode && limitedQuestions.length < target) {
+        setState(() {
+          _error = 'Le mode rapide a besoin de 10 questions. Reessaie.';
+          _isLoading = false;
+          _isThemeSelectionStep = false;
+        });
+        return;
+      }
 
       if (limitedQuestions.isEmpty) {
         setState(() {
           _error =
               'Aucune question disponible pour ce niveau. Verifie la reponse n8n.';
           _isLoading = false;
-          _isThemeSelectionStep = true;
+          _isThemeSelectionStep = !_isQuickQuizMode;
         });
         return;
       }
@@ -185,10 +208,61 @@ class _FeedPageState extends State<FeedPage> {
         _error =
             'Impossible de charger les questions depuis le backend n8n pour le theme "${_selectedTheme.label}".';
         _isLoading = false;
-        _isThemeSelectionStep = true;
+        _isThemeSelectionStep = !_isQuickQuizMode;
       });
       debugPrint('Erreur chargement questions: $error');
     }
+  }
+
+  Future<List<Question>> _loadQuickQuizQuestions(
+    QuestionSource source,
+    int targetCount,
+  ) async {
+    final collected = <Question>[];
+    final seenIds = <String>{};
+    final random = math.Random();
+    final shuffledThemes = [..._availableThemes]..shuffle(random);
+
+    for (final theme in shuffledThemes) {
+      final batch = await source.loadQuestions(
+        theme: theme.value,
+        level: null,
+        lang: _activeLangValue,
+      );
+      for (final question in batch) {
+        if (seenIds.add(question.id)) {
+          collected.add(question);
+        }
+        if (collected.length >= targetCount) {
+          break;
+        }
+      }
+      if (collected.length >= targetCount) {
+        break;
+      }
+    }
+
+    if (collected.length < targetCount) {
+      final fallback = await source.loadQuestions(
+        theme: null,
+        level: null,
+        lang: _activeLangValue,
+      );
+      for (final question in fallback) {
+        if (seenIds.add(question.id)) {
+          collected.add(question);
+        }
+        if (collected.length >= targetCount) {
+          break;
+        }
+      }
+    }
+
+    collected.shuffle(random);
+    if (collected.length <= targetCount) {
+      return collected;
+    }
+    return collected.take(targetCount).toList();
   }
 
   @override
@@ -281,6 +355,12 @@ class _FeedPageState extends State<FeedPage> {
     _stopQuestionTimer();
     try {
       if (currentIndex == _questions.length - 1) {
+        if (_isQuickQuizMode) {
+          setState(() {
+            _isResultStep = true;
+          });
+          return;
+        }
         final target = _targetQuestionCount;
         if (_questions.length < target) {
           final appended = await _appendOneQuestionFromBackend();
@@ -313,6 +393,10 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _restartGame() {
+    if (_isQuickQuizMode) {
+      _backToHomeHub();
+      return;
+    }
     _stopQuestionTimer();
     setState(() {
       _isThemeSelectionStep = true;
@@ -338,6 +422,10 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void _retryCurrentConfig() {
+    if (_isQuickQuizMode) {
+      _startQuickQuiz();
+      return;
+    }
     _startQuiz();
   }
 
@@ -365,6 +453,12 @@ class _FeedPageState extends State<FeedPage> {
       _selectedLevel = _levelByValue(level.difficultyValue);
     });
     _startQuiz();
+  }
+
+  void _startQuickQuiz() {
+    _questionLimit = 10;
+    _selectedLevel = null;
+    _startQuiz(useSelectedTheme: false, forcedQuestionLimit: 10);
   }
 
   void _goToAdventureMapFromResult() {
@@ -586,12 +680,16 @@ class _FeedPageState extends State<FeedPage> {
             : _retryCurrentConfig,
         onChangeTheme: _isAdventureMode
             ? _goToAdventureMapFromResult
-            : _restartGame,
-        onBack: _isAdventureMode ? _goToAdventureMapFromResult : _restartGame,
+            : (_isQuickQuizMode ? _backToHomeHub : _restartGame),
+        onBack: _isAdventureMode
+            ? _goToAdventureMapFromResult
+            : (_isQuickQuizMode ? _backToHomeHub : _restartGame),
         nextRoundLabel: _isAdventureMode && _nextAdventureLevelIndex == null
             ? 'REPLAY LEVEL'
             : 'NEXT ROUND',
-        secondaryLabel: _isAdventureMode ? 'ADVENTURE MAP' : 'THEME SELECTION',
+        secondaryLabel: _isAdventureMode
+            ? 'ADVENTURE MAP'
+            : (_isQuickQuizMode ? 'ACCUEIL' : 'THEME SELECTION'),
         adventurePassed: _isAdventureMode ? _lastAdventurePassed : null,
         adventureStars: _isAdventureMode ? _lastAdventureStars : null,
         adventureObjective: _isAdventureMode && currentLevel != null

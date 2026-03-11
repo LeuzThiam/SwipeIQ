@@ -58,11 +58,7 @@ class AppShellPage extends StatelessWidget {
                         icon: Icons.bolt_rounded,
                         colorA: const Color(0xFF9156FF),
                         colorB: const Color(0xFF6A37DA),
-                        onTap: () => _openFeed(
-                          context,
-                          FeedEntryMode.themeSelection,
-                          'Quiz rapide',
-                        ),
+                        onTap: () => _openQuickQuizIntro(context),
                       ),
                     ),
                   ],
@@ -131,6 +127,12 @@ class AppShellPage extends StatelessWidget {
         builder: (_) => FeedPage(entryMode: mode, title: title),
       ),
     );
+  }
+
+  void _openQuickQuizIntro(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const _QuickQuizIntroPage()));
   }
 
   void _openInfoPage(
@@ -474,6 +476,138 @@ class _InfoPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _QuickQuizIntroPage extends StatelessWidget {
+  const _QuickQuizIntroPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Quiz rapide')),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0B2B7A), Color(0xFF071B4D)],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.bolt_rounded, color: Colors.amber, size: 76),
+                const SizedBox(height: 12),
+                const Text(
+                  'Quiz rapide',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  '10 questions aleatoires\nTeste tes connaissances rapidement !',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xB8142F66),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _QuickInfoRow(label: 'Questions', value: '10'),
+                      SizedBox(height: 6),
+                      _QuickInfoRow(label: 'Themes', value: 'aleatoires'),
+                      SizedBox(height: 6),
+                      _QuickInfoRow(label: 'Duree', value: 'environ 2 minutes'),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                const Text('🎲', style: TextStyle(fontSize: 58)),
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const FeedPage(
+                            entryMode: FeedEntryMode.quickQuiz,
+                            title: 'Quiz rapide',
+                          ),
+                        ),
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF8A00),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 30),
+                    label: const Text('COMMENCER'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickInfoRow extends StatelessWidget {
+  const _QuickInfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          '$label : ',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.cyanAccent, fontSize: 16),
+          ),
+        ),
+      ],
     );
   }
 }
