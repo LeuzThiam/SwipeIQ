@@ -12,10 +12,19 @@ import 'widgets/quiz_error_view.dart';
 import 'widgets/quiz_loading_view.dart';
 import 'widgets/quiz_result_view.dart';
 
+enum FeedEntryMode { themeSelection, adventureMap }
+
 class FeedPage extends StatefulWidget {
-  const FeedPage({super.key, this.source});
+  const FeedPage({
+    super.key,
+    this.source,
+    this.entryMode = FeedEntryMode.themeSelection,
+    this.title = 'Quiz rapide',
+  });
 
   final QuestionSource? source;
+  final FeedEntryMode entryMode;
+  final String title;
 
   @override
   State<FeedPage> createState() => _FeedPageState();
@@ -53,14 +62,13 @@ class _FeedPageState extends State<FeedPage> {
   List<int?> _selectedChoices = const [];
   bool _isLoading = false;
   bool _isThemeSelectionStep = true;
-  bool _isSoloThemeStep = false;
   bool _isAdventureMapStep = false;
   bool _isResultStep = false;
   bool _isAdventureMode = false;
   String? _error;
   _ThemeOption _selectedTheme = _availableThemes.first;
   _ChoiceOption? _selectedLevel;
-  _ChoiceOption _selectedLang = _availableLangs[0];
+  final _ChoiceOption _selectedLang = _availableLangs[0];
   int? _questionLimit;
   String? _activeThemeValue;
   String? _activeLevelValue;
@@ -119,6 +127,10 @@ class _FeedPageState extends State<FeedPage> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    if (widget.entryMode == FeedEntryMode.adventureMap) {
+      _isAdventureMapStep = true;
+      _isAdventureMode = true;
+    }
   }
 
   QuestionSource _resolveSource() {
@@ -140,7 +152,6 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _isLoading = true;
       _isThemeSelectionStep = false;
-      _isSoloThemeStep = false;
       _isAdventureMapStep = false;
       _isResultStep = false;
       _error = null;
@@ -329,7 +340,6 @@ class _FeedPageState extends State<FeedPage> {
     _stopQuestionTimer();
     setState(() {
       _isThemeSelectionStep = true;
-      _isSoloThemeStep = false;
       _isAdventureMapStep = false;
       _isResultStep = false;
       _isAdventureMode = false;
@@ -355,45 +365,14 @@ class _FeedPageState extends State<FeedPage> {
     _startQuiz();
   }
 
-  void _openSoloThemeSelection() {
-    _stopQuestionTimer();
-    setState(() {
-      _isSoloThemeStep = true;
-      _isAdventureMapStep = false;
-      _isAdventureMode = false;
-      _questionLimit = null;
-      _activeThemeValue = null;
-      _activeLevelValue = null;
-      _activeLangValue = null;
-      _activeSource = null;
-      _currentAdventureLevelIndex = null;
-      _nextAdventureLevelIndex = null;
-      _error = null;
-    });
-  }
-
   void _backToHomeHub() {
     _stopQuestionTimer();
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
     setState(() {
-      _isSoloThemeStep = false;
       _isAdventureMapStep = false;
-    });
-  }
-
-  void _openAdventureMap() {
-    _stopQuestionTimer();
-    setState(() {
-      _isAdventureMapStep = true;
-      _isSoloThemeStep = false;
-      _isAdventureMode = true;
-      _questionLimit = null;
-      _activeThemeValue = null;
-      _activeLevelValue = null;
-      _activeLangValue = null;
-      _activeSource = null;
-      _currentAdventureLevelIndex = null;
-      _nextAdventureLevelIndex = null;
-      _error = null;
     });
   }
 
@@ -417,7 +396,6 @@ class _FeedPageState extends State<FeedPage> {
     setState(() {
       _isThemeSelectionStep = true;
       _isAdventureMapStep = true;
-      _isSoloThemeStep = false;
       _isResultStep = false;
       _isLoading = false;
       _questions = const [];
@@ -510,122 +488,19 @@ class _FeedPageState extends State<FeedPage> {
     });
   }
 
-  void _showComingSoon(String label) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$label arrive bientot')));
-  }
-
-  Future<void> _openAdvancedOptions() async {
-    var tempLevel = _selectedLevel;
-    var tempLang = _selectedLang;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Options avancees',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text('Niveau'),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ChoiceChip(
-                          label: const Text('Auto'),
-                          selected: tempLevel == null,
-                          onSelected: (_) => setModalState(() {
-                            tempLevel = null;
-                          }),
-                        ),
-                        ..._availableLevels.map(
-                          (level) => ChoiceChip(
-                            label: Text(level.label),
-                            selected: tempLevel == level,
-                            onSelected: (_) => setModalState(() {
-                              tempLevel = level;
-                            }),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<_ChoiceOption>(
-                      initialValue: tempLang,
-                      decoration: const InputDecoration(
-                        labelText: 'Langue',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _availableLangs
-                          .map(
-                            (lang) => DropdownMenuItem<_ChoiceOption>(
-                              value: lang,
-                              child: Text(lang.label),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setModalState(() {
-                          tempLang = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedLevel = tempLevel;
-                            _selectedLang = tempLang;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Appliquer'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isThemeSelectionStep) {
       return Scaffold(
-        body: _isSoloThemeStep
-            ? _buildSoloThemeSelection()
-            : (_isAdventureMapStep
-                  ? _buildAdventureMap()
-                  : _buildThemeSelector()),
+        body: _isAdventureMapStep
+            ? _buildAdventureMap()
+            : _buildSoloThemeSelection(),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isResultStep ? 'Resultat' : 'SwipeIQ - Feed'),
+        title: Text(_isResultStep ? 'Resultat' : widget.title),
         actions: _isResultStep
             ? null
             : [
@@ -672,11 +547,9 @@ class _FeedPageState extends State<FeedPage> {
 
   Widget _buildBody() {
     if (_isThemeSelectionStep) {
-      return _isSoloThemeStep
-          ? _buildSoloThemeSelection()
-          : (_isAdventureMapStep
-                ? _buildAdventureMap()
-                : _buildThemeSelector());
+      return _isAdventureMapStep
+          ? _buildAdventureMap()
+          : _buildSoloThemeSelection();
     }
 
     if (_isLoading) {
@@ -744,118 +617,6 @@ class _FeedPageState extends State<FeedPage> {
           remainingSeconds: _remainingSeconds,
         );
       },
-    );
-  }
-
-  Widget _buildThemeSelector() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0A1B4A), Color(0xFF07132E)],
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 1),
-            Icon(
-              Icons.psychology_alt_outlined,
-              size: 76,
-              color: Colors.cyanAccent.shade200,
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'NEURON QUEST',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 42,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Defie ton cerveau, une question a la fois.',
-              style: TextStyle(color: Colors.white70),
-            ),
-            const Spacer(flex: 2),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _HomeActionButton(
-                      key: const Key('play_solo_button'),
-                      label: 'PLAY SOLO',
-                      icon: Icons.help_outline_rounded,
-                      color: const Color(0xFF1AA9FF),
-                      onTap: _openSoloThemeSelection,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _HomeActionButton(
-                      label: 'ADVENTURE',
-                      icon: Icons.map_rounded,
-                      color: const Color(0xFF8B39FF),
-                      onTap: _openAdventureMap,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _HomeActionButton(
-                      label: 'LEADERBOARD',
-                      icon: Icons.emoji_events_rounded,
-                      color: const Color(0xFF39CC5B),
-                      onTap: () => _showComingSoon('Leaderboard'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(flex: 2),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-              color: Colors.black.withValues(alpha: 0.2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _BottomIconItem(
-                    icon: Icons.settings_outlined,
-                    label: 'SETTINGS',
-                    onTap: _openAdvancedOptions,
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'PROFILE',
-                    onTap: () => _showComingSoon('Profile'),
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.shopping_cart_outlined,
-                    label: 'STORE',
-                    onTap: () => _showComingSoon('Store'),
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.auto_awesome_outlined,
-                    label: 'BONUS',
-                    onTap: () => _showComingSoon('Bonus'),
-                  ),
-                ],
-              ),
-            ),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.redAccent),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -927,35 +688,6 @@ class _FeedPageState extends State<FeedPage> {
                     },
                   );
                 },
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-              color: Colors.black.withValues(alpha: 0.2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _BottomIconItem(
-                    icon: Icons.settings_outlined,
-                    label: 'SETTINGS',
-                    onTap: _openAdvancedOptions,
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'PROFILE',
-                    onTap: () => _showComingSoon('Profile'),
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.shopping_cart_outlined,
-                    label: 'STORE',
-                    onTap: () => _showComingSoon('Store'),
-                  ),
-                  _BottomIconItem(
-                    icon: Icons.auto_awesome_outlined,
-                    label: 'BONUS',
-                    onTap: () => _showComingSoon('Bonus'),
-                  ),
-                ],
               ),
             ),
           ],
@@ -1241,114 +973,6 @@ class _AdventureLevelState {
   bool unlocked;
   int stars = 0;
   int bestScore = 0;
-}
-
-class _HomeActionButton extends StatelessWidget {
-  const _HomeActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-    super.key,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color.withValues(alpha: 0.95),
-              color.withValues(alpha: 0.78),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.35),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.35),
-              blurRadius: 14,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: Colors.white, size: 34),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomIconItem extends StatelessWidget {
-  const _BottomIconItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white70),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ThemeSquareCard extends StatelessWidget {
