@@ -4,7 +4,17 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Flutter / Dart
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Node / React Native
+node_modules/
+.expo/
+dist/
+
+# Legacy Flutter artifacts
 .dart_tool/
 .packages
 .pub/

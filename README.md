@@ -1,68 +1,56 @@
 # SwipeIQ
 
-[![Mobile CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/mobile-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/mobile-ci.yml)
-[![Content CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/content-ci.yml)
-[![Backend CI](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml/badge.svg?branch=dev)](https://github.com/LeuzThiam/SwipeIQ/actions/workflows/backend-ci.yml)
+SwipeIQ est maintenant structure comme un monorepo `React Native + Django`.
 
-SwipeIQ est une application d'apprentissage Flutter basee sur du micro-contenu "swipe" avec des pipelines JSON valides.
+## Structure
 
-## Demo
-- TODO: ajouter un GIF ou une courte video.
-
-## Fonctionnalites MVP
-- [x] Initialisation Flutter
-- [ ] Feed vertical type reels
-- [x] Validation JSON en gate CI
-- [ ] Ecran stats et streaks
-- [ ] Livraison de contenu distant
-
-## Architecture
 ```text
 SwipeIQ/
-|- mobile/
-|- backend/
-|- content/
-|- tools/
-|- infra/
-|- docs/
+|- mobile/   # React Native (Expo + TypeScript)
+|- backend/  # Django REST API
+|- content/  # questions JSON
+|- tools/    # validation et automatisation
+|- infra/    # docker-compose local
+|- docs/     # architecture et contrat API
 ```
 
 ## Demarrage rapide
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
 ### Mobile
+
 ```bash
 cd mobile
-flutter pub get
-flutter analyze
-flutter test
-flutter run
+npm install
+npm run start
 ```
 
-### Contenu
-```bash
-python tools/validator/validate_questions.py
-```
+### Infra
 
-### Infra (local)
 ```bash
 cd infra
-docker compose up --build
+docker compose --profile backend up --build
 ```
 
-## CI/CD
-- `mobile-ci`: format, analyse, tests, artefact APK debug.
-- `content-ci`: valide les JSON de `content/generated`.
-- `backend-ci`: prepare le pipeline backend et le build Docker.
+## Endpoints MVP
 
-## Feuille de route
-### V1
-- Feed + consommation de contenu
-- Statistiques locales
-- Flux de publication contenu fiable
+- `GET /api/health/`
+- `GET /api/questions/` avec `meta.count`, `meta.limit`, `theme`, `level`
+- `GET /api/stats/`
 
-### V2
-- API backend completes
-- Authentification et profil
-- Recommandations et classement
+## Etat actuel
 
-## Licence
-MIT. Voir [LICENSE](./LICENSE).
+- backend Django REST lisant `content/generated/questions.json`
+- mobile React Native Expo nettoye, sans reliquats Flutter
+- feed vertical pagine plein ecran avec quiz interactif et score local
+- statistiques de catalogue chargees depuis `/api/stats/`
