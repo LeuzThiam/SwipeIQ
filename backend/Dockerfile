@@ -1,9 +1,16 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
-COPY backend ./backend
-RUN echo "Backend scaffold only - add .csproj files to enable build."
+FROM python:3.11-slim
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
-EXPOSE 8080
-CMD ["/bin/sh", "-c", "echo 'Backend scaffold is ready'; sleep infinity"]
+
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend /app
+COPY content /content
+
+EXPOSE 8000
+
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]

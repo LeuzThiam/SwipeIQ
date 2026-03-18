@@ -1,16 +1,24 @@
-# mobile
+# Mobile React Native
 
-A new Flutter project.
+Application SwipeIQ migree vers React Native avec Expo et TypeScript.
 
-## Getting Started
+Le dossier mobile ne contient plus que le strict necessaire pour un projet Expo managed.
 
-This project is a starting point for a Flutter application.
+## Demarrage
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+cd mobile
+npm install
+npm run start
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Scripts
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `npm run start`
+- `npm run android`
+- `npm run ios`
+- `npm run web`
+- `npm run typecheck`
+
+Par defaut, l'application contacte `http://10.0.2.2:8000/api` sur emulateur Android
+et `http://localhost:8000/api` ailleurs.
